@@ -10,10 +10,10 @@ def download_and_install_update_if_available(tst):
     currentVersion = ''
     if(tst==0):
         boot = bootloader.Bootloader('https://github.com/lipic/wattmeter',"")
-        currentVersion = boot.get_prod_version("")
     else:
-        boot = bootloader.Bootloader('https://github.com/lipic/wattmeter_tst',"")
-        currentVersion = boot.get_tst_version("")
+        boot = bootloader.Bootloader('https://github.com/lipic/wattmeter_tst',"",tst=True)
+        
+    currentVersion = boot.get_version("")
     githubVersion = boot.get_latest_version()
     print("Current version is {}".format(currentVersion))
     print("GitHub version is {}".format(githubVersion))
@@ -42,7 +42,7 @@ def boot():
             Pin(22, Pin.OUT).on() # set pin high on creation
             if(config['sw,AUTOMATIC UPDATE'] == '1'):
                 print("Try check for updates")
-                download_and_install_update_if_available(int(config['sw,TEST_FW']))
+                download_and_install_update_if_available(int(config['sw,TESTING SOFTWARE']))
             Pin(23, Pin.OUT).off() # set pin high on creation
             Pin(22, Pin.OUT).off() # set pin high on creation
         else:
