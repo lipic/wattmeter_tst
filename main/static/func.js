@@ -197,6 +197,7 @@ $(function () {
                     t = document.getElementById("powerGraph"),
                     n = e.getConfig();
                     powerGraph = new Chart(t, n);
+                    loadPowerChart();
                     timer = setInterval(function(){
                         $.ajax({ url: "/updateData" }).done(function (e) {
                         $("#updateData").html(e.datalayer)
@@ -221,8 +222,10 @@ $(function () {
                     timer = setInterval(function(){
                         $.ajax({ url: "/updateData" }).done(function (e) {
                         $("#updateData").html(e.datalayer)
-                        (hourEnergyData = e.E_hour)
-                        (dailyEnergyData = e.DailyEnergy)
+                        hourEnergyData = e.E_hour
+                        dailyEnergyData = e.DailyEnergy
+                        console.log(hourEnergyData)
+                        console.log(dailyEnergyData)
                         refreshEnergyChartHourly()
                         refreshEnergyChartDaily()
                         })
