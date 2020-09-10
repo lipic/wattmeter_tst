@@ -209,7 +209,7 @@ $(function () {
                     },1000)
                     setTimeout(function () {
                         loadPowerChart();
-                    }, 500)
+                    }, 100)
                   }))
             }    
             else if("energyChart" == $(this).attr("id")){
