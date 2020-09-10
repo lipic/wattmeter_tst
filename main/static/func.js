@@ -186,7 +186,7 @@ $(function () {
                       setting.refreshSetting(),
                       setTimeout(function () {
                           setting.refreshWifiClient();
-                      }, 500),
+                      }, 500)
                   }))
                 }
             else if("powerChart" == $(this).attr("id")){
@@ -212,7 +212,7 @@ $(function () {
             else if("energyChart" == $(this).attr("id")){
                   (stop(timer),
                    $("div.mainContainer").load("energyChart", function () {
-                    energyGraphHourly.destroy(),
+                    energyGraphHourly.destroy();
                     energyGraphDaily.destroy();
                     (document.getElementById("sideText").textContent ='\u2630'+ "  Energy chart");
                     let e = new energyChart("Hourly energy consumption", "Hourly E [Wh]", "Wh"),
