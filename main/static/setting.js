@@ -77,12 +77,12 @@ function Setting() {
             $('.switch input[type="checkbox"]').on("change", function () {
                 self.saveSetting("sw," + $(this).attr("id"), 1 == $(this).prop("checked") ? 1 : 0);
             });
-            var a = 25;
+            var a = 60;
             $(document).on("click", "#resetEsp", function (t) {
                 setInterval(resetCounter, 1e3),
                     setTimeout(function () {
                         location.reload(!0), (a = 0), (document.getElementById("resetEsp").innerText = "FINISHING");
-                    }, 25e3),
+                    }, 60e3),
                     self.saveSetting("bt,RESET WATTMETER", 1);
             }),
                 (resetCounter = function () {

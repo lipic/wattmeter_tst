@@ -44,6 +44,8 @@ function updateData() {
             (document.getElementById("Total_Energy_negative").textContent = ((e.E1_total_negative + e.E2_total_negative + e.E3_total_negative) / 100).toFixed(2)),
             (document.getElementById("ID").textContent = e.ID),
             (numberOfEvse = e.NUMBER_OF_EVSE);
+            hourEnergyData = e.E_hour;
+            dailyEnergyData = e.DailyEnergy;
         if (evseInstance == "undefined" && numberOfEvse != 0) {
             evseInstance = new evse(numberOfEvse);
             evseInstance.createEvseAPI();
