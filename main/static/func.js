@@ -175,9 +175,6 @@ $(function () {
                       evseInstance = "undefined";
                       (document.getElementById("sideText").textContent ='\u2630'+ " Overview"); 
                       updateData();
-                       powerGraph.destroy(),
-                      energyGraphHourly.destroy(),
-                      energyGraphDaily.destroy();
                   }))
                  }
                 else if("settings" == $(this).attr("id")){
@@ -190,21 +187,17 @@ $(function () {
                       setTimeout(function () {
                           setting.refreshWifiClient();
                       }, 500),
-                      powerGraph.destroy(),
-                      energyGraphHourly.destroy(),
-                      energyGraphDaily.destroy();
                   }))
                 }
             else if("powerChart" == $(this).attr("id")){
                 (   stop(timer),
                     $("div.mainContainer").load("powerChart", function () {
+                    powerGraph.destroy()
                     (document.getElementById("sideText").textContent ='\u2630'+ "  Power chart");
-                    var e = new powerChart(refreshPowerChart),
+                    let e = new powerChart(refreshPowerChart),
                     t = document.getElementById("powerGraph"),
                     n = e.getConfig();
                     powerGraph = new Chart(t, n);
-                    energyGraphHourly.destroy();
-                    energyGraphDaily.destroy();
                     timer = setInterval(function(){
                         $.ajax({ url: "/updateData" }).done(function (e) {
                         $("#updateData").html(e.datalayer)
@@ -219,21 +212,20 @@ $(function () {
             else if("energyChart" == $(this).attr("id")){
                   (stop(timer),
                    $("div.mainContainer").load("energyChart", function () {
+                    energyGraphHourly.destroy(),
+                    energyGraphDaily.destroy();
                     (document.getElementById("sideText").textContent ='\u2630'+ "  Energy chart");
                     let e = new energyChart("Hourly energy consumption", "Hourly E [Wh]", "Wh"),
                     t = new energyChart("Daily energy consumption", "Daily E [kWh]", "kWh");
                     (o = document.getElementById("energyGraph_hourly")), (d = e.getConfig(24)), (energyGraphHourly = new Chart(o, d));
                     let i = document.getElementById("energyGraph_daily"),
                     s = t.getConfig(31);
-                    powerGraph.destroy()
                     (energyGraphDaily = new Chart(i, s));
                     timer = setInterval(function(){
                         $.ajax({ url: "/updateData" }).done(function (e) {
                         $("#updateData").html(e.datalayer)
                         hourEnergyData = e.E_hour
                         dailyEnergyData = e.DailyEnergy
-                        console.log(hourEnergyData)
-                        console.log(dailyEnergyData)
                         refreshEnergyChartHourly()
                         refreshEnergyChartDaily()
                         })
