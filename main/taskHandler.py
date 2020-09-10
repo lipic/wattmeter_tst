@@ -1,8 +1,16 @@
 import uasyncio as asyncio
 import wattmeterComInterface
 import evseComInterface
-import modbusTcp
-import ledErrHandler
+try:
+    import modbusTcp
+except:
+    from main import modbusTcp
+    
+try:
+    import ledErrHandler
+except:
+    from main import ledErrHandler
+
 from ntptime import settime
 from asyn import Lock,NamedTask
 from gc import mem_free, collect
