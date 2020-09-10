@@ -175,6 +175,9 @@ $(function () {
                       evseInstance = "undefined";
                       (document.getElementById("sideText").textContent ='\u2630'+ " Overview"); 
                       updateData();
+                       powerGraph.destroy(),
+                      energyGraphHourly.destroy(),
+                      energyGraphDaily.destroy();
                   }))
                  }
                 else if("settings" == $(this).attr("id")){
@@ -196,10 +199,12 @@ $(function () {
                 (   stop(timer),
                     $("div.mainContainer").load("powerChart", function () {
                     (document.getElementById("sideText").textContent ='\u2630'+ "  Power chart");
-                    let e = new powerChart(refreshPowerChart),
+                    var e = new powerChart(refreshPowerChart),
                     t = document.getElementById("powerGraph"),
                     n = e.getConfig();
                     powerGraph = new Chart(t, n);
+                    energyGraphHourly.destroy();
+                    energyGraphDaily.destroy();
                     timer = setInterval(function(){
                         $.ajax({ url: "/updateData" }).done(function (e) {
                         $("#updateData").html(e.datalayer)
@@ -220,6 +225,7 @@ $(function () {
                     (o = document.getElementById("energyGraph_hourly")), (d = e.getConfig(24)), (energyGraphHourly = new Chart(o, d));
                     let i = document.getElementById("energyGraph_daily"),
                     s = t.getConfig(31);
+                    powerGraph.destroy()
                     (energyGraphDaily = new Chart(i, s));
                     timer = setInterval(function(){
                         $.ajax({ url: "/updateData" }).done(function (e) {
