@@ -46,6 +46,7 @@ function updateData() {
             (numberOfEvse = e.NUMBER_OF_EVSE);
             hourEnergyData = e.E_hour;
             dailyEnergyData = e.DailyEnergy;
+            powerAVGchartData = e.P_minuten
         if (evseInstance == "undefined" && numberOfEvse != 0) {
             evseInstance = new evse(numberOfEvse);
             evseInstance.createEvseAPI();
@@ -208,7 +209,7 @@ $(function () {
                     },1000)
                     setTimeout(function () {
                         loadPowerChart();
-                    }, 2000)
+                    }, 500)
                   }))
             }    
             else if("energyChart" == $(this).attr("id")){
