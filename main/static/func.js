@@ -1,5 +1,6 @@
-(numberOfEvse = 0), (powerAVGchartData = 0), (hourEnergyData = []), (dailyEnergyData = []);
+(numberOfEvse = 0), (powerAVGchartData = 0), (hourEnergyData = []), (dailyEnergyData = []),(powerGraph = 'undefined'),(energyGraphHourly= 'undefined');
 var refreshGraphs = 0;
+
 
 function updateData() {
     $.ajax({ url: "/updateData" }).done(function (e) {
@@ -192,12 +193,15 @@ $(function () {
             else if("powerChart" == $(this).attr("id")){
                 (   stop(timer),
                     $("div.mainContainer").load("powerChart", function () {
-                    powerGraph.destroy()
+                    if(powerGraph != 'undefined'){
+                        powerGraph.destroy()
+                    }
                     (document.getElementById("sideText").textContent ='\u2630'+ "  Power chart");
                     let e = new powerChart(refreshPowerChart),
                     t = document.getElementById("powerGraph"),
                     n = e.getConfig();
                     powerGraph = new Chart(t, n);
+                    console.log(powerGraph)
                     timer = setInterval(function(){
                         $.ajax({ url: "/updateData" }).done(function (e) {
                         $("#updateData").html(e.datalayer)
@@ -212,8 +216,10 @@ $(function () {
             else if("energyChart" == $(this).attr("id")){
                   (stop(timer),
                    $("div.mainContainer").load("energyChart", function () {
-                    energyGraphHourly.destroy();
-                    energyGraphDaily.destroy();
+                    if(energyGraphHourly != 'undefined'){
+                        energyGraphHourly.destroy();
+                        energyGraphDaily.destroy();
+                    }
                     (document.getElementById("sideText").textContent ='\u2630'+ "  Energy chart");
                     let e = new energyChart("Hourly energy consumption", "Hourly E [Wh]", "Wh"),
                     t = new energyChart("Daily energy consumption", "Daily E [kWh]", "kWh");
