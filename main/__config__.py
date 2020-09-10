@@ -1,24 +1,25 @@
 import bootloader
 import random
+from collections import OrderedDict
 
 class Config: 
     
     def __init__(self):
         #all variables saved in flash
         self.boot = bootloader.Bootloader('https://github.com/lipic/wattmeter',"")
-        self.config = {}
-        self.config['bt,RESET WATTMETER'] = '0'     #Reg 1000
-        self.config['sw,AUTOMATIC UPDATE'] = '0' #Reg 1001
-        self.config['txt,ACTUAL SW VERSION']='0'  #Reg 1002
-        self.config['sw,ENABLE CHARGING']='0'       #Reg 1003
-        self.config['sl,BREAKER']='6'                            #Reg 1004 
-        self.config['sl,EVSE']='6'                                    #Reg 1005
-        self.config['sl,TIME-ZONE']='2'                          #Reg 1005
-        self.config['in,EVSE-NUMBER']='0'                          #Reg 1005
-        self.config['sw,ENABLE BALANCING']='0'     #Reg 1006
-        self.config['sw,WHEN HDO: RELAY ON']='0'    #Reg 1006
-        self.config['sw,TESTING SOFTWARE']='0'    #Reg 1006
-        self.config['ID'] = '0'
+        self.config = OrderedDict()
+        self.config['bt,RESET WATTMETER'] = '0'       #Reg 1000
+        self.config['sw,AUTOMATIC UPDATE'] = '0'   #Reg 1001
+        self.config['txt,ACTUAL SW VERSION']='0'    #Reg 1002
+        self.config['sw,ENABLE CHARGING']='0'        #Reg 1003
+        self.config['sl,BREAKER']='6'                             #Reg 1004 
+        self.config['sl,EVSE']='6'                                     #Reg 1005
+        self.config['sl,TIME-ZONE']='2'                         #Reg 1006
+        self.config['in,EVSE-NUMBER']='0'                   #Reg 1007
+        self.config['sw,ENABLE BALANCING']='0'     #Reg 1008
+        self.config['sw,WHEN HDO: RELAY ON']='0' #Reg 1009
+        self.config['sw,TESTING SOFTWARE']='0'      #Reg 1010
+        self.config['ID'] = '0'                                            #Reg 1011
         self.SETTING_PROFILES = 'setting.dat'
         self.handle_configure('txt,ACTUAL SW VERSION',self.boot.get_version(""))
  
@@ -58,6 +59,7 @@ class Config:
     # Update self.config. Write new value to self.config and to file setting.dat
     def handle_configure(self,variable, value):
         try:
+            self.handleDifferentRequests(variable,value)
             if len(variable)>0:
                 try:
                     setting = self.read_setting()
@@ -74,6 +76,11 @@ class Config:
         except Exception as e:
             print(e)
             
+    def handleDifferentRequests(self,variable,value):
+        if(variable == 'bt,RESET WATTMETER'):
+            from machine import reset
+            reset()
+
     #If exist read setting from setting.dat, esle create setting
     def read_setting(self):
         with open(self.SETTING_PROFILES) as f:

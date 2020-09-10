@@ -1,6 +1,8 @@
 import uasyncio as asyncio
 import wattmeterComInterface
 import evseComInterface
+import modbusTcp
+import ledErrHandler
 from ntptime import settime
 from asyn import Lock,NamedTask
 from gc import mem_free, collect
@@ -10,8 +12,6 @@ import wifiManager
 from main import wattmeter
 from main import evse
 from main import __config__ 
-from main import modbusTcp
-from main import errorHandler
 
 EVSE_ERR = 1
 WATTMETER_ERR = 2
@@ -31,7 +31,7 @@ class TaskHandler:
         self.wdt = WDT(timeout=60000)
         self.setting = __config__.Config()
         self.wifiManager = wifi
-        self.ledErrorHandler = errorHandler.ErrorHandler()
+        self.ledErrorHandler = ledErrHandler.ErrorHandler()
         self.ledRun  = Pin(23, Pin.OUT) # set pin high on creation
         self.ledWifi = Pin(22, Pin.OUT) # set pin high on creation
      
@@ -67,7 +67,7 @@ class TaskHandler:
             before = mem_free()
             collect()
             after = mem_free()
-         #   print("Memory beofre: {} & after: {}".format(before,after))
+            print("Memory beofre: {} & after: {}".format(before,after))
             await asyncio.sleep(delay_secs)
                     
     #Handler for wifi.    
