@@ -39,9 +39,9 @@ function updateData() {
             (document.getElementById("E2_daily_positive").textContent = (e.E2_daily_positive / 100).toFixed(2)),
             (document.getElementById("E3_daily_positive").textContent = (e.E3_daily_positive / 100).toFixed(2)),
             (document.getElementById("Current_Energy_positive").textContent = ((e.E1_daily_positive+e.E2_daily_positive+e.E3_daily_positive) / 100).toFixed(2)),
-            (document.getElementById("E1_daily_negative").textContent = (e.E1_daily_positive / 100).toFixed(2)),
-            (document.getElementById("E2_daily_negative").textContent = (e.E2_daily_positive / 100).toFixed(2)),
-            (document.getElementById("E3_daily_negative").textContent = (e.E3_daily_positive / 100).toFixed(2)),
+            (document.getElementById("E1_daily_negative").textContent = (e.E1_daily_negative / 100).toFixed(2)),
+            (document.getElementById("E2_daily_negative").textContent = (e.E2_daily_negative / 100).toFixed(2)),
+            (document.getElementById("E3_daily_negative").textContent = (e.E3_daily_negative / 100).toFixed(2)),
             (document.getElementById("Current_Energy_negative").textContent = ((e.E1_daily_negative+e.E2_daily_negative+e.E3_daily_negative) / 100).toFixed(2)),
             
             (document.getElementById("Total_Energy_positive").textContent = (e.E_previousDay_positive / 100).toFixed(2)),
@@ -247,10 +247,10 @@ $(function () {
                     energyGraphHourly.update()
                     setTimeout(function () {
                           refreshEnergyChartHourly();
-                      }, 1000)
+                      }, 100)
                     setTimeout(function () {
                             refreshEnergyChartDaily();
-                      }, 1000)
+                      }, 100)
                   }))
             }    
         }),
