@@ -35,12 +35,19 @@ function updateData() {
             (document.getElementById("PN1_peak").textContent = (e.PN1_peak / 1e3).toFixed(2)),
             (document.getElementById("PN2_peak").textContent = (e.PN2_peak / 1e3).toFixed(2)),
             (document.getElementById("PN3_peak").textContent = (e.PN3_peak / 1e3).toFixed(2)),
+            (document.getElementById("E1_daily_positive").textContent = (e.E1_daily_positive / 100).toFixed(2)),
+            (document.getElementById("E2_daily_positive").textContent = (e.E2_daily_positive / 100).toFixed(2)),
+            (document.getElementById("E3_daily_positive").textContent = (e.E3_daily_positive / 100).toFixed(2)),
+            (document.getElementById("Current_Energy_positive").textContent = ((e.E1_daily_positive+e.E2_daily_positive+e.E3_daily_positive) / 100).toFixed(2)),
+            (document.getElementById("E1_daily_negative").textContent = (e.E1_daily_positive / 100).toFixed(2)),
+            (document.getElementById("E2_daily_negative").textContent = (e.E2_daily_positive / 100).toFixed(2)),
+            (document.getElementById("E3_daily_negative").textContent = (e.E3_daily_positive / 100).toFixed(2)),
+            (document.getElementById("Current_Energy_negative").textContent = ((e.E1_daily_negative+e.E2_daily_negative+e.E3_daily_negative) / 100).toFixed(2)),
+            
             (document.getElementById("Total_Energy_positive").textContent = (e.E_previousDay_positive / 100).toFixed(2)),
             (document.getElementById("Total_Energy_negative").textContent = e.E_previousDay_negative > 0 ? ((65535 - e.E_previousDay_negative) / 100).toFixed(2) : (0).toFixed(2)),
             (document.getElementById("Previous_Energy_positive").textContent = (e.E_previousDay_positive / 100).toFixed(2)),
             (document.getElementById("Previous_Energy_negative").textContent = (e.E_previousDay_negative / 100).toFixed(2)),
-            (document.getElementById("Current_Energy_positive").textContent = (e.E_currentDay_positive / 100).toFixed(2)),
-            (document.getElementById("Current_Energy_negative").textContent = (e.E_currentDay_negative / 100).toFixed(2)),
             (document.getElementById("Total_Energy_positive").textContent = ((e.E1_total_positive + e.E2_total_positive + e.E3_total_positive) / 100).toFixed(2)),
             (document.getElementById("Total_Energy_negative").textContent = ((e.E1_total_negative + e.E2_total_negative + e.E3_total_negative) / 100).toFixed(2)),
             (document.getElementById("ID").textContent = e.ID),
@@ -208,9 +215,7 @@ $(function () {
                         powerAVGchartData = e.P_minuten
                         }) 
                     },1000)
-                    setTimeout(function () {
-                        loadPowerChart();
-                    }, 100)
+                    loadPowerChart()
                   }))
             }    
             else if("energyChart" == $(this).attr("id")){
@@ -220,9 +225,9 @@ $(function () {
                         energyGraphHourly.destroy();
                         energyGraphDaily.destroy();
                     }
-                    (document.getElementById("sideText").textContent ='\u2630'+ "  Energy chart");
-                    let e = new energyChart("Hourly energy consumption", "Hourly E [Wh]", "Wh"),
-                    t = new energyChart("Daily energy consumption", "Daily E [kWh]", "kWh");
+                    (document.getElementById("sideText").textContent ='\u2630'+ "  Energy charts");
+                    let e = new energyChart("", "Hourly E [Wh]", "Wh"),
+                    t = new energyChart("", "Daily E [kWh]", "kWh");
                     (o = document.getElementById("energyGraph_hourly")), (d = e.getConfig(24)), (energyGraphHourly = new Chart(o, d));
                     let i = document.getElementById("energyGraph_daily"),
                     s = t.getConfig(31);
@@ -236,12 +241,12 @@ $(function () {
                         refreshEnergyChartDaily()
                         })
                     },60000)
-                    setTimeout(function () {
-                        refreshEnergyChartHourly();
-                    }, 500),
-                    setTimeout(function () {
-                        refreshEnergyChartDaily();
-                    }, 500);
+                    energyGraphDaily.getDatasetMeta(1).hidden=true;
+                    energyGraphDaily.update();
+                    energyGraphHourly.getDatasetMeta(1).hidden=true;
+                    energyGraphHourly.update()
+                    refreshEnergyChartHourly();
+                    refreshEnergyChartDaily();
                   }))
             }    
         }),

@@ -142,8 +142,12 @@ class Wattmeter:
 
             elif ((receiveData != "Null") and (reg == 3102)):
                 
-                self.dataLayer.data["E_currentDay_positive"] =     (int)((((receiveData[0])) << 8)  | ((receiveData[1]))) + (int)((((receiveData[2])) << 8)  | ((receiveData[3]))) + (int)((((receiveData[4])) << 8)  | ((receiveData[5])))
-                self.dataLayer.data["E_currentDay_negative"] =     (int)((((receiveData[6])) << 8)  | ((receiveData[7]))) + (int)((((receiveData[8])) << 8)  | ((receiveData[9]))) + (int)((((receiveData[10])) << 8)  | ((receiveData[11])))
+                self.dataLayer.data["E1_daily_positive"] = (int)((receiveData[0] << 8)  | (receiveData[1])) 
+                self.dataLayer.data["E2_daily_positive"] = (int)((receiveData[2] << 8)  | (receiveData[3])) 
+                self.dataLayer.data["E3_daily_positive"] = (int)((receiveData[4] << 8)  | (receiveData[5])) 
+                self.dataLayer.data["E1_daily_negative"]= (int)((receiveData[6] << 8)  | (receiveData[7])) 
+                self.dataLayer.data["E2_daily_negative"]= (int)((receiveData[8] << 8)  | (receiveData[9])) 
+                self.dataLayer.data["E3_daily_negative"]= (int)((receiveData[10] << 8)  | (receiveData[11])) 
                 self.dataLayer.data["PP1_peak"] =     (int)((((receiveData[12])) << 8)  | ((receiveData[13])))
                 self.dataLayer.data["PP2_peak"] =     (int)((((receiveData[14])) << 8)  | ((receiveData[15])))
                 self.dataLayer.data["PP3_peak"] =     (int)((((receiveData[16])) << 8)  | ((receiveData[17])))
@@ -228,8 +232,12 @@ class DataLayer:
         self.data["P_minuten"] = [0]
         self.data["E_hour"] = [0]
         self.data['DailyEnergy'] = None
-        self.data["E_currentDay_positive"] = 0
-        self.data["E_currentDay_negative"] = 0
+        self.data["E1_daily_positive"] = 0
+        self.data["E2_daily_positive"] = 0
+        self.data["E3_daily_positive"] = 0
+        self.data["E1_daily_negative"] = 0
+        self.data["E2_daily_negative"] = 0
+        self.data["E3_daily_negative"] = 0
         self.data["E_previousDay_positive"] = 0
         self.data["E_previousDay_negative"] = 0
         self.data["E1_total_positive"] = 0
