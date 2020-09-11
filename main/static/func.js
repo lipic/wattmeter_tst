@@ -245,8 +245,12 @@ $(function () {
                     energyGraphDaily.update();
                     energyGraphHourly.getDatasetMeta(1).hidden=true;
                     energyGraphHourly.update()
-                    refreshEnergyChartHourly();
-                    refreshEnergyChartDaily();
+                    setTimeout(function () {
+                          refreshEnergyChartHourly();
+                      }, 1000)
+                    setTimeout(function () {
+                            refreshEnergyChartDaily();
+                      }, 1000)
                   }))
             }    
         }),
