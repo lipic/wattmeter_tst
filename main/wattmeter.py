@@ -23,7 +23,7 @@ class Wattmeter:
 
     async def wattmeterHandler(self):
         #Read data from wattmeter
-        if((self.timeOfset == False)and (self.timeInit == True)):
+        if((self.timeOfset == False)and(self.timeInit == True)):
             self.startUpTime = time.time()
             self.lastMinute =  int(time.localtime()[4])
             self.lastDay =  int(time.localtime()[2])
@@ -89,7 +89,7 @@ class Wattmeter:
             
         if((self.lastDay is not int(time.localtime()[2]))and(self.timeInit == True)):
             curentYear = str(time.localtime()[0])[-2:] 
-            data = {("{0:02}/{1:02}/{2}".format(time.localtime()[1],self.lastDay ,curentYear)) : [self.dataLayer.data["E_currentDay_positive"], self.dataLayer.data["E_currentDay_negative"]]}
+            data = {("{0:02}/{1:02}/{2}".format(time.localtime()[1],self.lastDay ,curentYear)) : [self.dataLayer.data["E1_daily_positive"] + self.dataLayer.data["E2_daily_positive"]+self.dataLayer.data["E3_daily_positive"], self.dataLayer.data["E1_daily_negative"] + self.dataLayer.data["E2_daily_negative"]+self.dataLayer.data["E3_daily_negative"]]}
             status = await self.wattmeterInterface.writeWattmeterRegister(102,[1])
             self.lastDay = int(time.localtime()[2])
             self.fileHandler.handleData(self.DAILY_CONSUMPTION)
