@@ -70,12 +70,16 @@ function updateData() {
                 $('#EV_STATE' + i).text("CHARGING")
             }
         }
+        dotControl()
+        timer = setTimeout(updateData, 1e3)
+    })
+}
+
+function dotControl(){
       (elements = document.getElementsByClassName("dot"))
         for (var i = 0; i < elements.length; i++) {
             "red" == elements[i].style.backgroundColor ? (elements[i].style.backgroundColor = "") : (elements[i].style.backgroundColor = "red")
-        }
-        timer = setTimeout(updateData, 1e3)
-    })
+        }    
 }
 function stop() {
     timer && (console.log("stopTimer"), clearTimeout(timer), (timer = 0));
@@ -180,6 +184,7 @@ $(function () {
             for(var i = (k.length -1);i>=0;i--){
                 $('#kWh'+(k.length  - i)).text(k[i]);
             }
+            dotControl();
             $('#powerTxt').text(p+' kW');
             }) 
         },1000)
@@ -202,6 +207,7 @@ $(function () {
                                 $('#kWh'+(k.length  - i)).text(k[i]);
                             }
                             $('#powerTxt').text(p+' kW');
+                            dotControl();
                         }) 
                     },1000)
                   })
