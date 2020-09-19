@@ -186,10 +186,24 @@ $(function () {
     }),
         $("#mySidenav a").click(function (e) {
             if("overview" == $(this).attr("id")){
-                 (stop(timer),            
+                 (stop(timer),
+                  evseInstance = "undefined";
                   $("div.mainContainer").load("overview", function () {
                       (document.getElementById("sideText").textContent ='\u2630'+ " Overview"); 
-                      updateData();
+                      let e = new GaugeSetting('power',20,-10) 
+                      var g = e.getGauge()
+                        timer = setInterval(function(){
+                        $.ajax({ url: "/updateData" }).done(function (e) {
+                            $("#updateData").html(e.datalayer)
+                            var p = (((e.P1+e.P2+e.P3) > 32767 ? (e.P1+e.P2+e.P3) - 65535 : (e.P1+e.P2+e.P3)) / 1e3).toFixed(2)
+                            g.set(p)
+                            var k =  (((e.E1tP+e.E2tP+e.E3tP) / 100).toFixed(1)).toString()
+                            for(var i = (k.length -1);i>=0;i--){
+                                $('#kWh'+(k.length  - i)).text(k[i]);
+                            }
+                            $('#powerTxt').text(p+' kW');
+                        }) 
+                    },1000)
                   }))
                  }
             else if("data" == $(this).attr("id")){
