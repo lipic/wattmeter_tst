@@ -258,7 +258,7 @@ $(function () {
                     let e = new energyChart("", "Hourly E [Wh]", "Wh"),
                     t = new energyChart("", "Daily E [kWh]", "kWh");
                     (o = document.getElementById("energyGraph_hourly")), (d = e.getConfig(24)), (energyGraphHourly = new Chart(o, d));
-                    let i = document.getElementById("energyGraphd"),
+                    let i = document.getElementById("energyGraph_daily"),
                     s = t.getConfig(31);
                     (energyGraphDaily = new Chart(i, s));
                     timer = setInterval(function(){

@@ -238,8 +238,8 @@ class DataLayer:
         self.data["E1dN"] = 0
         self.data["E2dN"] = 0
         self.data["E3dN"] = 0
-        self.data["EeDP"] = 0#positive previous day Energy L1,L2,L3
-        self.data["EeDN"] = 0#negative previous day Energy L1,L2,L3
+        self.data["EpDP"] = 0#positive previous day Energy L1,L2,L3
+        self.data["EpDN"] = 0#negative previous day Energy L1,L2,L3
         self.data["E1tP"] = 0#positive total Energy L1
         self.data["E2tP"] = 0#positive total Energy L1
         self.data["E3tP"] = 0#positive total Energy L1
