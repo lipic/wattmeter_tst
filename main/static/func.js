@@ -186,7 +186,7 @@ $(function () {
     }),
         $("#mySidenav a").click(function (e) {
             if("overview" == $(this).attr("id")){
-                 (stop(timer),
+                 stop(timer);
                   evseInstance = "undefined";
                   $("div.mainContainer").load("overview", function () {
                       (document.getElementById("sideText").textContent ='\u2630'+ " Overview"); 
@@ -204,7 +204,7 @@ $(function () {
                             $('#powerTxt').text(p+' kW');
                         }) 
                     },1000)
-                  }))
+                  })
                  }
             else if("data" == $(this).attr("id")){
                  (stop(timer),            
