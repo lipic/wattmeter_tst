@@ -4,82 +4,78 @@ var refreshGraphs = 0;
 
 function updateData() {
     $.ajax({ url: "/updateData" }).done(function (e) {
-        $("#updateData").html(e.datalayer), (document.getElementById("RUN_TIME").textContent = e.RUN_TIME), (document.getElementById("WATTMETER_TIME").textContent = e.WATTMETER_TIME);
+        $("#updateData").html(e.datalayer),
+        ($('#RUN_TIME').text(e.RUN_TIME)), ($('#WATTMETER_TIME').text(e.WATTMETER_TIME));
         var t = e.U1,
             n = e.U2,
             a = e.U3;
-        (document.getElementById("U1").textContent = t), (document.getElementById("U2").textContent = n), (document.getElementById("U3").textContent = a);
+        ($('#U1').text(t)), ($('#U2').text(n)), ($('#U3').text(a));
         var o = ((e.I1 > 32767 ? e.I1 - 65535 : e.I1) / 100).toFixed(2),
             r = ((e.I2 > 32767 ? e.I2 - 65535 : e.I2) / 100).toFixed(2),
             d = ((e.I3 > 32767 ? e.I3 - 65535 : e.I3) / 100).toFixed(2);
-        (document.getElementById("I1").textContent = o), (document.getElementById("I2").textContent = r), (document.getElementById("I3").textContent = d);
+        ($('#I1').text(o)), ($('#I2').text(r)), ($('#I3').text(d));
         var i = ((e.P1 > 32767 ? e.P1 - 65535 : e.P1) / 1e3).toFixed(2),
             s = ((e.P2 > 32767 ? e.P2 - 65535 : e.P2) / 1e3).toFixed(2),
             l = ((e.P3 > 32767 ? e.P3 - 65535 : e.P3) / 1e3).toFixed(2);
-        (document.getElementById("P1").textContent = i), (document.getElementById("P2").textContent = s), (document.getElementById("P3").textContent = l);
+        ($('#P1').text(i)), ($('#P2').text(s)), ($('#P3').text(l))
         var y = ((e.P1 > 32767 ? e.P1 - 65535 : e.P1) / 1e3).toFixed(2),
             u = ((e.P2 > 32767 ? e.P2 - 65535 : e.P2) / 1e3).toFixed(2),
             c = ((e.P3 > 32767 ? e.P3 - 65535 : e.P3) / 1e3).toFixed(2);
         e.HDO > 0
-            ? ((document.getElementById("HDO").textContent = "ON"), (document.getElementById("HDO").style.color = "#74DF00"))
-            : ((document.getElementById("HDO").textContent = "OFF"), (document.getElementById("HDO").style.color = "#FF0000")),
+            ? (($('#HDO').text("ON")), ($('#HDO').css("color","#74DF00")))
+            : (($('#HDO').text("OFF")), ($('#HDO').css("color","#FF0000"))),
             e.RELAY > 0
-                ? ((document.getElementById("RELAY").textContent = "ON"), (document.getElementById("RELAY").style.color = "#74DF00"))
-                : ((document.getElementById("RELAY").textContent = "OFF"), (document.getElementById("RELAY").style.color = "#FF0000")),
-            (document.getElementById("PF1").textContent = (e.PF1 / 100).toFixed(2)),
-            (document.getElementById("PF2").textContent = (e.PF2 / 100).toFixed(2)),
-            (document.getElementById("PF3").textContent = (e.PF3 / 100).toFixed(2)),
-            (document.getElementById("PP1_peak").textContent = (e.PP1_peak / 1e3).toFixed(2)),
-            (document.getElementById("PP2_peak").textContent = (e.PP2_peak / 1e3).toFixed(2)),
-            (document.getElementById("PP3_peak").textContent = (e.PP3_peak / 1e3).toFixed(2)),
-            (document.getElementById("PN1_peak").textContent = (e.PN1_peak / 1e3).toFixed(2)),
-            (document.getElementById("PN2_peak").textContent = (e.PN2_peak / 1e3).toFixed(2)),
-            (document.getElementById("PN3_peak").textContent = (e.PN3_peak / 1e3).toFixed(2)),
-            (document.getElementById("E1_daily_positive").textContent = (e.E1_daily_positive / 100).toFixed(2)),
-            (document.getElementById("E2_daily_positive").textContent = (e.E2_daily_positive / 100).toFixed(2)),
-            (document.getElementById("E3_daily_positive").textContent = (e.E3_daily_positive / 100).toFixed(2)),
-            (document.getElementById("Current_Energy_positive").textContent = ((e.E1_daily_positive+e.E2_daily_positive+e.E3_daily_positive) / 100).toFixed(2)),
-            (document.getElementById("E1_daily_negative").textContent = (e.E1_daily_negative / 100).toFixed(2)),
-            (document.getElementById("E2_daily_negative").textContent = (e.E2_daily_negative / 100).toFixed(2)),
-            (document.getElementById("E3_daily_negative").textContent = (e.E3_daily_negative / 100).toFixed(2)),
-            (document.getElementById("Current_Energy_negative").textContent = ((e.E1_daily_negative+e.E2_daily_negative+e.E3_daily_negative) / 100).toFixed(2)),
-            
-            (document.getElementById("Total_Energy_positive").textContent = (e.E_previousDay_positive / 100).toFixed(2)),
-            (document.getElementById("Total_Energy_negative").textContent = e.E_previousDay_negative > 0 ? ((65535 - e.E_previousDay_negative) / 100).toFixed(2) : (0).toFixed(2)),
-            (document.getElementById("Previous_Energy_positive").textContent = (e.E_previousDay_positive / 100).toFixed(2)),
-            (document.getElementById("Previous_Energy_negative").textContent = (e.E_previousDay_negative / 100).toFixed(2)),
-            (document.getElementById("Total_Energy_positive").textContent = ((e.E1_total_positive + e.E2_total_positive + e.E3_total_positive) / 100).toFixed(2)),
-            (document.getElementById("Total_Energy_negative").textContent = ((e.E1_total_negative + e.E2_total_negative + e.E3_total_negative) / 100).toFixed(2)),
-            (document.getElementById("ID").textContent = e.ID),
-            (numberOfEvse = e.NUMBER_OF_EVSE);
-            hourEnergyData = e.E_hour;
-            dailyEnergyData = e.DailyEnergy;
+                ? (($('#RELAY').text ("ON")), ($('#RELAY').css("color", "#74DF00")))
+                : (($('#RELAY').text("OFF")), ($('#RELAY').css("color", "#FF0000"))),
+            ($('#PF1').text((e.PF1 / 100).toFixed(2))),
+            ($('#PF2').text((e.PF2 / 100).toFixed(2))),
+            ($('#PF3').text((e.PF3 / 100).toFixed(2))),
+            ($('#PP1p').text((e.PP1p / 1e3).toFixed(2))),
+            ($('#PP2p').text((e.PP2p / 1e3).toFixed(2))),
+            ($('#PP3p').text((e.PP3p / 1e3).toFixed(2))),
+            ($('#PN1p').text((e.PN1p / 1e3).toFixed(2))),
+            ($('#PN2p').text((e.PN2p / 1e3).toFixed(2))),
+            ($('#PN3p').text((e.PN3p / 1e3).toFixed(2))),
+            ($('#E1dP').text((e.E1dP / 100).toFixed(2))),
+            ($('#E2dP').text((e.E2dP / 100).toFixed(2))),
+            ($('#E3dP').text((e.E3d_positive / 100).toFixed(2))),
+            ($('#Current_EP').text(((e.E1dP+e.E2dP+e.E3dP) / 100).toFixed(2))),
+            ($('#E1dN').text((e.E1dN / 100).toFixed(2))),
+            ($('#E2dN').text((e.E2dN / 100).toFixed(2))),
+            ($('#E3dN').text((e.E3dN / 100).toFixed(2))),
+            ($('#Current_EN').text(((e.E1dN+e.E2dN+e.E3dN) / 100).toFixed(2))),
+            ($('#Total_EP').text(((e.E1tP+e.E2tP+e.E3tP) / 100).toFixed(2))),
+            ($('#Total_EN').text(((e.E1tN+e.E2tN+e.E3tN) / 100).toFixed(2))),
+            ($('#Previous_EP').text((e.EpDP / 100).toFixed(2))),
+            ($('#Previous_EN').text((e.EpDN / 100).toFixed(2))),
+            ($('#Total_EP').text(((e.E1tP + e.E2tP + e.E3tP) / 100).toFixed(2))),
+            ($('#Total_EN').text(((e.E1tN + e.E2tN + e.E3tN) / 100).toFixed(2))),
+            ($('#ID').text(e.ID)),
+            (numberOfEvse = e.NUMBER_OF_EVSE)
+            hourEnergyData = e.E_hour
+            dailyEnergyData = e.DailyEnergy
             powerAVGchartData = e.P_minuten
-        if (evseInstance == "undefined" && numberOfEvse != 0) {
-            evseInstance = new evse(numberOfEvse);
-            evseInstance.createEvseAPI();
-        }
+            //evseInstance = (((evseInstance == "undefined") && (numberOfEvse != 0)):(new evse(numberOfEvse))?(evseInstance.createEvseAPI()))
+                                        
         for (var i = 1; i <= numberOfEvse; i++) {
-            console.log(e.ACTUAL_CONFIG_CURRENT[i - 1]),
-                console.log(typeof e.ACTUAL_CONFIG_CURRENT[i - 1]) != "undefined",
-                (document.getElementById("ACTUAL_CONFIG_CURRENT" + i).textContent = typeof e.ACTUAL_CONFIG_CURRENT[i - 1] != "undefined" ? e.ACTUAL_CONFIG_CURRENT[i - 1] : "COMM ERR."),
-                (document.getElementById("ACTUAL_OUTPUT_CURRENT" + i).textContent = typeof e.ACTUAL_OUTPUT_CURRENT[i - 1] != "undefined" ? e.ACTUAL_OUTPUT_CURRENT[i - 1] : "COMM ERR.");
+                ($('#ACTUAL_CONFIG_CURRENT' + i).text(typeof e.ACTUAL_CONFIG_CURRENT[i - 1] != "undefined" ? e.ACTUAL_CONFIG_CURRENT[i - 1] : "COMM ERR.")),
+                ($('#ACTUAL_OUTPUT_CURRENT' + i).text(typeof e.ACTUAL_OUTPUT_CURRENT[i - 1] != "undefined" ? e.ACTUAL_OUTPUT_CURRENT[i - 1] : "COMM ERR."))
             if (typeof e.EV_STATE[i - 1] == "undefined") {
-                document.getElementById("EV_STATE" + i).textContent = "COMM ERR.";
+                $('#EV_STATE' + i).text("COMM ERR.")
             } else if (e.EV_STATE[i - 1] == 1) {
-                document.getElementById("EV_STATE" + i).textContent = "UNPLUG";
+                $('#EV_STATE' + i).text("UNPLUG")
             } else if (e.EV_STATE[i - 1] == 2) {
-                document.getElementById("EV_STATE" + i).textContent = "PLUG";
+                $('#EV_STATE' + i).text("PLUG")
             } else if (e.EV_STATE[i - 1] == 3) {
-                document.getElementById("EV_STATE" + i).textContent = "CHARGING";
+                $('#EV_STATE' + i).text("CHARGING")
             }
         }
-      (elements = document.getElementsByClassName("dot"));
+      (elements = document.getElementsByClassName("dot"))
         for (var i = 0; i < elements.length; i++) {
-            "red" == elements[i].style.backgroundColor ? (elements[i].style.backgroundColor = "") : (elements[i].style.backgroundColor = "red");
+            "red" == elements[i].style.backgroundColor ? (elements[i].style.backgroundColor = "") : (elements[i].style.backgroundColor = "red")
         }
-        timer = setTimeout(updateData, 1e3);
-    });
+        timer = setTimeout(updateData, 1e3)
+    })
 }
 function stop() {
     timer && (console.log("stopTimer"), clearTimeout(timer), (timer = 0));
@@ -179,7 +175,11 @@ $(function () {
             $.ajax({ url: "/updateData" }).done(function (e) {
             $("#updateData").html(e.datalayer)
             var p = (((e.P1+e.P2+e.P3) > 32767 ? (e.P1+e.P2+e.P3) - 65535 : (e.P1+e.P2+e.P3)) / 1e3).toFixed(2)
-             g.set(p)
+            g.set(p)
+            var k =  (((e.E1tP+e.E2tP+e.E3tP) / 100).toFixed(1)).toString()
+            for(var i = (k.length -1);i>=0;i--){
+                $('#kWh'+(k.length  - i)).text(k[i]);
+            }
             $('#powerTxt').text(p+' kW');
             }) 
         },1000)
@@ -244,7 +244,7 @@ $(function () {
                     let e = new energyChart("", "Hourly E [Wh]", "Wh"),
                     t = new energyChart("", "Daily E [kWh]", "kWh");
                     (o = document.getElementById("energyGraph_hourly")), (d = e.getConfig(24)), (energyGraphHourly = new Chart(o, d));
-                    let i = document.getElementById("energyGraph_daily"),
+                    let i = document.getElementById("energyGraphd"),
                     s = t.getConfig(31);
                     (energyGraphDaily = new Chart(i, s));
                     timer = setInterval(function(){

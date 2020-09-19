@@ -53,10 +53,10 @@ class Wattmeter:
         if((self.lastMinute is not int(time.localtime()[4]))and(self.timeInit == True)):
             
             if(len(self.dataLayer.data["P_minuten"])<61):
-                self.dataLayer.data["P_minuten"].append(self.dataLayer.data["Emin_Positive"]*6)#self.dataLayer.data["P1"])
+                self.dataLayer.data["P_minuten"].append(self.dataLayer.data["EminP"]*6)#self.dataLayer.data["P1"])
             else:
                 self.dataLayer.data["P_minuten"] = self.dataLayer.data["P_minuten"][1:]
-                self.dataLayer.data["P_minuten"].append(self.dataLayer.data["Emin_Positive"]*6)#self.dataLayer.data["P1"])
+                self.dataLayer.data["P_minuten"].append(self.dataLayer.data["EminP"]*6)#self.dataLayer.data["P1"])
             
             self.dataLayer.data["P_minuten"][0] = len(self.dataLayer.data["P_minuten"])
             status = await self.wattmeterInterface.writeWattmeterRegister(100,[1])
@@ -68,28 +68,28 @@ class Wattmeter:
                 self.lastHour = int(time.localtime()[3])
                 if(len(self.dataLayer.data["E_hour"])<73):
                     self.dataLayer.data["E_hour"].append(self.lastHour)
-                    self.dataLayer.data["E_hour"].append(self.dataLayer.data["Ehour_Positive"])
-                    self.dataLayer.data["E_hour"].append(self.dataLayer.data["Ehour_Negative"])
+                    self.dataLayer.data["E_hour"].append(self.dataLayer.data["EhourP"])
+                    self.dataLayer.data["E_hour"].append(self.dataLayer.data["EhourN"])
                 else:
                     self.dataLayer.data["E_hour"] = self.dataLayer.data["E_hour"][3:]
                     self.dataLayer.data["E_hour"].append(self.lastHour)
-                    self.dataLayer.data["E_hour"].append(self.dataLayer.data["Ehour_Positive"])
-                    self.dataLayer.data["E_hour"].append(self.dataLayer.data["Ehour_Negative"])
+                    self.dataLayer.data["E_hour"].append(self.dataLayer.data["EhourP"])
+                    self.dataLayer.data["E_hour"].append(self.dataLayer.data["EhourN"])
             
                 self.dataLayer.data["E_hour"][0] = len(self.dataLayer.data["E_hour"])
             
         else:  
             if(len(self.dataLayer.data["E_hour"])<73):
-                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-2]= self.dataLayer.data["Ehour_Positive"]
-                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-1]= self.dataLayer.data["Ehour_Negative"]
+                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-2]= self.dataLayer.data["EhourP"]
+                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-1]= self.dataLayer.data["EhourN"]
             else:
-                self.dataLayer.data["E_hour"][71]= self.dataLayer.data["Ehour_Positive"]
-                self.dataLayer.data["E_hour"][72]= self.dataLayer.data["Ehour_Negative"]
+                self.dataLayer.data["E_hour"][71]= self.dataLayer.data["EhourP"]
+                self.dataLayer.data["E_hour"][72]= self.dataLayer.data["EhourN"]
         
             
         if((self.lastDay is not int(time.localtime()[2]))and(self.timeInit == True)):
             curentYear = str(time.localtime()[0])[-2:] 
-            data = {("{0:02}/{1:02}/{2}".format(time.localtime()[1],self.lastDay ,curentYear)) : [self.dataLayer.data["E1_daily_positive"] + self.dataLayer.data["E2_daily_positive"]+self.dataLayer.data["E3_daily_positive"], self.dataLayer.data["E1_daily_negative"] + self.dataLayer.data["E2_daily_negative"]+self.dataLayer.data["E3_daily_negative"]]}
+            data = {("{0:02}/{1:02}/{2}".format(time.localtime()[1],self.lastDay ,curentYear)) : [self.dataLayer.data["E1dP"] + self.dataLayer.data["E2dP"]+self.dataLayer.data["E3dP"], self.dataLayer.data["E1dN"] + self.dataLayer.data["E2dN"]+self.dataLayer.data["E3dN"]]}
             status = await self.wattmeterInterface.writeWattmeterRegister(102,[1])
             self.lastDay = int(time.localtime()[2])
             self.fileHandler.handleData(self.DAILY_CONSUMPTION)
@@ -131,46 +131,46 @@ class Wattmeter:
             
             elif ((receiveData != "Null") and (reg == 2502)):
                 
-                self.dataLayer.data["Emin_Positive"] =     (int)((((receiveData[0])) << 8)  | ((receiveData[1]))) + (int)((((receiveData[2])) << 8)  | ((receiveData[3]))) + (int)((((receiveData[4])) << 8)  | ((receiveData[5])))
+                self.dataLayer.data["EminP"] =     (int)((((receiveData[0])) << 8)  | ((receiveData[1]))) + (int)((((receiveData[2])) << 8)  | ((receiveData[3]))) + (int)((((receiveData[4])) << 8)  | ((receiveData[5])))
                 return "SUCCESS_READ"
              
             elif ((receiveData != "Null") and (reg == 2802)):
                 
-                self.dataLayer.data["Ehour_Positive"] =     (int)((((receiveData[0])) << 8)  | ((receiveData[1]))) + (int)((((receiveData[2])) << 8)  | ((receiveData[3]))) + (int)((((receiveData[4])) << 8)  | ((receiveData[5])))
-                self.dataLayer.data["Ehour_Negative"] =     (int)((((receiveData[6])) << 8)  | ((receiveData[7]))) + (int)((((receiveData[8])) << 8)  | ((receiveData[9]))) + (int)((((receiveData[10])) << 8)  | ((receiveData[11])))
+                self.dataLayer.data["EhourP"] =     (int)((((receiveData[0])) << 8)  | ((receiveData[1]))) + (int)((((receiveData[2])) << 8)  | ((receiveData[3]))) + (int)((((receiveData[4])) << 8)  | ((receiveData[5])))
+                self.dataLayer.data["EhourN"] =     (int)((((receiveData[6])) << 8)  | ((receiveData[7]))) + (int)((((receiveData[8])) << 8)  | ((receiveData[9]))) + (int)((((receiveData[10])) << 8)  | ((receiveData[11])))
                 return "SUCCESS_READ"
 
             elif ((receiveData != "Null") and (reg == 3102)):
                 
-                self.dataLayer.data["E1_daily_positive"] = (int)((receiveData[0] << 8)  | (receiveData[1])) 
-                self.dataLayer.data["E2_daily_positive"] = (int)((receiveData[2] << 8)  | (receiveData[3])) 
-                self.dataLayer.data["E3_daily_positive"] = (int)((receiveData[4] << 8)  | (receiveData[5])) 
-                self.dataLayer.data["E1_daily_negative"]= (int)((receiveData[6] << 8)  | (receiveData[7])) 
-                self.dataLayer.data["E2_daily_negative"]= (int)((receiveData[8] << 8)  | (receiveData[9])) 
-                self.dataLayer.data["E3_daily_negative"]= (int)((receiveData[10] << 8)  | (receiveData[11])) 
-                self.dataLayer.data["PP1_peak"] =     (int)((((receiveData[12])) << 8)  | ((receiveData[13])))
-                self.dataLayer.data["PP2_peak"] =     (int)((((receiveData[14])) << 8)  | ((receiveData[15])))
-                self.dataLayer.data["PP3_peak"] =     (int)((((receiveData[16])) << 8)  | ((receiveData[17])))
-                self.dataLayer.data["PN1_peak"] =     (int)((((receiveData[18])) << 8)  | ((receiveData[19])))
-                self.dataLayer.data["PN2_peak"] =     (int)((((receiveData[20])) << 8)  | ((receiveData[21]))) 
-                self.dataLayer.data["PN3_peak"] =     (int)((((receiveData[22])) << 8)  | ((receiveData[23])))
+                self.dataLayer.data["E1dP"] = (int)((receiveData[0] << 8)  | (receiveData[1]))
+                self.dataLayer.data["E2dP"] = (int)((receiveData[2] << 8)  | (receiveData[3])) 
+                self.dataLayer.data["E3dP"] = (int)((receiveData[4] << 8)  | (receiveData[5]))
+                self.dataLayer.data["E1dN"]= (int)((receiveData[6] << 8)  | (receiveData[7]))
+                self.dataLayer.data["E2dN"]= (int)((receiveData[8] << 8)  | (receiveData[9]))
+                self.dataLayer.data["E3dN"]= (int)((receiveData[10] << 8)  | (receiveData[11])) 
+                self.dataLayer.data["PP1p"] =     (int)((((receiveData[12])) << 8)  | ((receiveData[13]))) 
+                self.dataLayer.data["PP2p"] =     (int)((((receiveData[14])) << 8)  | ((receiveData[15])))
+                self.dataLayer.data["PP3p"] =     (int)((((receiveData[16])) << 8)  | ((receiveData[17])))
+                self.dataLayer.data["PN1p"] =     (int)((((receiveData[18])) << 8)  | ((receiveData[19])))
+                self.dataLayer.data["PN2p"] =     (int)((((receiveData[20])) << 8)  | ((receiveData[21])))
+                self.dataLayer.data["PN3p"] =     (int)((((receiveData[22])) << 8)  | ((receiveData[23])))
                 return "SUCCESS_READ"
                     
             elif ((receiveData != "Null") and (reg == 4000)):
                 
-                self.dataLayer.data["E1_total_positive"] =      (int)((receiveData[2] << 24) |  (receiveData[3] << 16) |  (receiveData[0] << 8)  | receiveData[1] )
-                self.dataLayer.data["E2_total_positive"] =      (int)((receiveData[6] << 24) |  (receiveData[7] << 16) |  (receiveData[4] << 8)  | receiveData[5] )
-                self.dataLayer.data["E3_total_positive"] =      (int)((receiveData[10] << 24) |  (receiveData[11] << 16) |  (receiveData[8] << 8)  | receiveData[9] )
-                self.dataLayer.data["E1_total_negative"] =     (int)((receiveData[14] << 24) |  (receiveData[15] << 16) |  (receiveData[12] << 8)  | receiveData[13] )
-                self.dataLayer.data["E2_total_negative"] =     (int)((receiveData[18] << 24) |  (receiveData[19] << 16) |  (receiveData[16] << 8)  | receiveData[17] )
-                self.dataLayer.data["E3_total_negative"] =     (int)((receiveData[22] << 24) |  (receiveData[23] << 16) |  (receiveData[20] << 8)  | receiveData[21] )
+                self.dataLayer.data["E1tP"] =      (int)((receiveData[2] << 24) |  (receiveData[3] << 16) |  (receiveData[0] << 8)  | receiveData[1] )
+                self.dataLayer.data["E2tP"] =      (int)((receiveData[6] << 24) |  (receiveData[7] << 16) |  (receiveData[4] << 8)  | receiveData[5] )
+                self.dataLayer.data["E3tP"] =      (int)((receiveData[10] << 24) |  (receiveData[11] << 16) |  (receiveData[8] << 8)  | receiveData[9] )
+                self.dataLayer.data["E1tN"] =     (int)((receiveData[14] << 24) |  (receiveData[15] << 16) |  (receiveData[12] << 8)  | receiveData[13] )
+                self.dataLayer.data["E2tN"] =     (int)((receiveData[18] << 24) |  (receiveData[19] << 16) |  (receiveData[16] << 8)  | receiveData[17] )
+                self.dataLayer.data["E3tN"] =     (int)((receiveData[22] << 24) |  (receiveData[23] << 16) |  (receiveData[20] << 8)  | receiveData[21] )
 
                 return "SUCCESS_READ"
             
             elif ((receiveData != "Null") and (reg == 2902)):
                 
-                self.dataLayer.data["E_previousDay_positive"] =     (int)((((receiveData[0])) << 8)  | ((receiveData[1]))) + (int)((((receiveData[2])) << 8)  | ((receiveData[3]))) + (int)((((receiveData[4])) << 8)  | ((receiveData[5])))
-                self.dataLayer.data["E_previousDay_negative"] =     (int)((((receiveData[6])) << 8)  | ((receiveData[7]))) + (int)((((receiveData[8])) << 8)  | ((receiveData[9]))) + (int)((((receiveData[10])) << 8)  | ((receiveData[11])))
+                self.dataLayer.data["EeDP"] =     (int)((((receiveData[0])) << 8)  | ((receiveData[1]))) + (int)((((receiveData[2])) << 8)  | ((receiveData[3]))) + (int)((((receiveData[4])) << 8)  | ((receiveData[5])))
+                self.dataLayer.data["EeDN"] =     (int)((((receiveData[6])) << 8)  | ((receiveData[7]))) + (int)((((receiveData[8])) << 8)  | ((receiveData[9]))) + (int)((((receiveData[10])) << 8)  | ((receiveData[11])))
                 return "SUCCESS_READ"
 
             else:  
@@ -210,18 +210,18 @@ class DataLayer:
         self.data["U1"] = 0
         self.data["U2"] = 0
         self.data["U3"] = 0
-        self.data["PF1"] = 0
-        self.data["PF2"] = 0
-        self.data["PF3"] = 0 
-        self.data["PP1_peak"] = 0
-        self.data["PP2_peak"] = 0
-        self.data["PP3_peak"] = 0
-        self.data["PN1_peak"] = 0
-        self.data["PN2_peak"] = 0
-        self.data["PN3_peak"] = 0
-        self.data["Emin_Positive"] = 0
-        self.data["Ehour_Positive"] = 0
-        self.data["Ehour_Negative"] = 0
+        self.data["PF1"] =0#power factor L1
+        self.data["PF2"] =0#power factor L2
+        self.data["PF3"] =0#power factor L3
+        self.data["PP1p"] = 0#positive power peak L1
+        self.data["PP2p"] = 0#positive power peak L2
+        self.data["PP3p"] = 0#positive power peak L3
+        self.data["PN1p"] = 0#negative power peak L1
+        self.data["PN2p"] = 0#negative power peak L2
+        self.data["PN3p"] = 0#negative power peak L3
+        self.data["EminP"] = 0
+        self.data["EhourP"] = 0
+        self.data["EhourN"] = 0
         self.data["P1"] = 0
         self.data["P2"] = 0
         self.data["P3"] = 0
@@ -232,20 +232,20 @@ class DataLayer:
         self.data["P_minuten"] = [0]
         self.data["E_hour"] = [0]
         self.data['DailyEnergy'] = None
-        self.data["E1_daily_positive"] = 0
-        self.data["E2_daily_positive"] = 0
-        self.data["E3_daily_positive"] = 0
-        self.data["E1_daily_negative"] = 0
-        self.data["E2_daily_negative"] = 0
-        self.data["E3_daily_negative"] = 0
-        self.data["E_previousDay_positive"] = 0
-        self.data["E_previousDay_negative"] = 0
-        self.data["E1_total_positive"] = 0
-        self.data["E2_total_positive"] = 0
-        self.data["E3_total_positive"] = 0
-        self.data["E1_total_negative"] = 0
-        self.data["E2_total_negative"] = 0
-        self.data["E3_total_negative"] = 0
+        self.data["E1dP"] = 0
+        self.data["E2dP"] = 0
+        self.data["E3dP"] = 0
+        self.data["E1dN"] = 0
+        self.data["E2dN"] = 0
+        self.data["E3dN"] = 0
+        self.data["EeDP"] = 0#positive previous day Energy L1,L2,L3
+        self.data["EeDN"] = 0#negative previous day Energy L1,L2,L3
+        self.data["E1tP"] = 0#positive total Energy L1
+        self.data["E2tP"] = 0#positive total Energy L1
+        self.data["E3tP"] = 0#positive total Energy L1
+        self.data["E1tN"] = 0#negative total Energy L1
+        self.data["E2tN"] = 0#negative total Energy L1
+        self.data["E3tN"] = 0#negative total Energy L1
         self.data['RUN_TIME'] = 0
         self.data['WATTMETER_TIME'] = 0
         self.data['ID'] = 0
