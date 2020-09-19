@@ -17,9 +17,9 @@ function updateData() {
             s = ((e.P2 > 32767 ? e.P2 - 65535 : e.P2) / 1e3).toFixed(2),
             l = ((e.P3 > 32767 ? e.P3 - 65535 : e.P3) / 1e3).toFixed(2);
         (document.getElementById("P1").textContent = i), (document.getElementById("P2").textContent = s), (document.getElementById("P3").textContent = l);
-        var y = ((e.S1 > 32767 ? e.S1 - 65535 : e.S1) / 1e3).toFixed(2),
-            u = ((e.S2 > 32767 ? e.S2 - 65535 : e.S2) / 1e3).toFixed(2),
-            c = ((e.S3 > 32767 ? e.S3 - 65535 : e.S3) / 1e3).toFixed(2);
+        var y = ((e.P1 > 32767 ? e.P1 - 65535 : e.P1) / 1e3).toFixed(2),
+            u = ((e.P2 > 32767 ? e.P2 - 65535 : e.P2) / 1e3).toFixed(2),
+            c = ((e.P3 > 32767 ? e.P3 - 65535 : e.P3) / 1e3).toFixed(2);
         e.HDO > 0
             ? ((document.getElementById("HDO").textContent = "ON"), (document.getElementById("HDO").style.color = "#74DF00"))
             : ((document.getElementById("HDO").textContent = "OFF"), (document.getElementById("HDO").style.color = "#FF0000")),
@@ -168,20 +168,35 @@ function formatDate(e) {
     var t = e.getDate(),
         n = e.getMonth() + 1;
     return t < 10 && (t = "0" + t), n < 10 && (n = "0" + n), (n + "/" + t + "/" + e.getFullYear().toString().substr(-2)).toString();
-}
+} 
 $(function () {
-    $("div.mainContainer").load("datatable", function () {
+    $("div.mainContainer").load("overview", function () {
         $(".loader").hide(100);
         evseInstance = "undefined";
-        updateData();
-
+        let e = new GaugeSetting('power',20,-10) 
+        var g = e.getGauge()
+        timer = setInterval(function(){
+            $.ajax({ url: "/updateData" }).done(function (e) {
+            $("#updateData").html(e.datalayer)
+            var p = (((e.P1+e.P2+e.P3) > 32767 ? (e.P1+e.P2+e.P3) - 65535 : (e.P1+e.P2+e.P3)) / 1e3).toFixed(2)
+             g.set(p)
+            $('#powerTxt').text(p+' kW');
+            }) 
+        },1000)
     }),
         $("#mySidenav a").click(function (e) {
-            if("main" == $(this).attr("id")){
+            if("overview" == $(this).attr("id")){
+                 (stop(timer),            
+                  $("div.mainContainer").load("overview", function () {
+                      (document.getElementById("sideText").textContent ='\u2630'+ " Overview"); 
+                      updateData();
+                  }))
+                 }
+            else if("data" == $(this).attr("id")){
                  (stop(timer),            
                   $("div.mainContainer").load("datatable", function () {
                       evseInstance = "undefined";
-                      (document.getElementById("sideText").textContent ='\u2630'+ " Overview"); 
+                      (document.getElementById("sideText").textContent ='\u2630'+ " Data"); 
                       updateData();
                   }))
                  }
