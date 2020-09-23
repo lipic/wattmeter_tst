@@ -5,7 +5,7 @@ function Setting() {
             for (var i in n)
                 n.hasOwnProperty(i) &&
                     "txt" == (i = i.split(","))[0] &&
-                    $('<div class="row  mt-3" >  <div class="col" >  <p id="' + i[1] + '">' + i[1] + '</p> </div>  <div class="col">  <p> ' + (((n['sw,TESTING SOFTWARE'])=='1')?("tst_"+n[i[0] + "," + i[1]]): ("prd_"+n[i[0] + "," + i[1]])) + "</p> </div> </div>").appendTo("#settingTable");
+                    $('<div class="row  mt-3" >  <div class="col" >  <p id="' + i[1] + '">' + i[1] + '</p> </div>  <div class="col">  <p> ' + n[i[0] + "," + i[1]] + "</p> </div> </div>").appendTo("#settingTable");
             for (var i in ($("#updateSetting").html(n.datalayer), n))
                 n.hasOwnProperty(i) &&
                     "sw" == (i = i.split(","))[0] &&
@@ -77,12 +77,12 @@ function Setting() {
             $('.switch input[type="checkbox"]').on("change", function () {
                 self.saveSetting("sw," + $(this).attr("id"), 1 == $(this).prop("checked") ? 1 : 0);
             });
-            var a = 60;
+            var a = 25;
             $(document).on("click", "#resetEsp", function (t) {
                 setInterval(resetCounter, 1e3),
                     setTimeout(function () {
                         location.reload(!0), (a = 0), (document.getElementById("resetEsp").innerText = "FINISHING");
-                    }, 60e3),
+                    }, 25e3),
                     self.saveSetting("bt,RESET WATTMETER", 1);
             }),
                 (resetCounter = function () {
@@ -114,37 +114,6 @@ function Setting() {
                         $("#updateSetting").html(t.datalayer), 1 == t.process ? console.log("save success") : console.log("error during saving");
                     },
                 });
-        }),
-        $(document).on("click", "#setSSID", function () {
-            $("#setSSID").append('<span class="spinner-border spinner-border-sm"></span>'),
-                ($('#wifiStatus').html("Waiting .... ")),
-                ($('#wifiStatus').css("color", "#FBD428")),
-                (password = $('passwordField').value);
-            var e = $("input[name='ssid']:checked").val();
-            e
-                ? $.ajax({
-                      type: "POST",
-                      url: "/updateWificlient",
-                      async: !0,
-                      data: JSON.stringify({ ssid: e, password: password }),
-                      success: function (t) {
-                          $("#updateWificlient").html(t.datalayer),
-                              0 == t.process
-                                  ? (($('#wifiStatus').html("Please choose ssid client first!")), ($('#wifiStatus').css("color","#FF0000")))
-                                  : 1 == t.process
-                                  ? (($('#wifiStatus').html("Can not connect to Wattmeter SSID")), ($('#wifiStatus').css("color", "#FF0000")))
-                                  : 2 == t.process
-                                  ? (($('#wifiStatus').html("Currently connected to: " + e)), ($('#wifiStatus').css("color","#74DF00")))
-                                  : 3 == t.process
-                                  ? (($('#wifiStatus').html("Currently connected to: " + e)), ($('#wifiStatus').css("color", "#74DF00")))
-                                  : (($('#wifiStatus').html("Error during connection to: " + e)), ($('#wifiStatus').css("color","#FF0000")));
-                      },
-                  })
-                : (($('#wifiStatus').html("Please choose ssid client first!")), ($('#wifiStatus').css('color',"#FF0000"))),
-                $("#setSSID").find("span").remove();
-        }),
-        $(document).on("click", "#refreshSSID", function () {
-            for (; document.getElementById("ssid").firstChild; ) document.getElementById("ssid").removeChild(document.getElementById("ssid").firstChild);
-            ($('#wifiStatus').html("")), $("#refreshSSID").append('<span class="spinner-border spinner-border-sm"></span>'), setting.refreshWifiClient();
         });
 }
+

@@ -1,3 +1,4 @@
+########################################__Version__1.000__################################
 OK -> Kill webserver, pri zmene IP adresy
 OK -> Problem TCP modbusu(esp)
 OK -> Problem s pocatecnim pripojenim
@@ -9,3 +10,6 @@ OK -> Volba test a produkce u bootloaderu
 OK -> Upravit poradi ESP modbus registru
 OK -> Projit modbusTCP a otestovat
 OK -> Switch View
+OK -> Pridat denni spotrebu po fazich
+OK -> Flow graph
+########################################__Version__1.0__################################
