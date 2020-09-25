@@ -1,16 +1,8 @@
 import uasyncio as asyncio
+import ledErrHandler
 import wattmeterComInterface
-import evseComInterface
-try:
-    import modbusTcp
-except:
-    from main import modbusTcp
-    
-try:
-    import ledErrHandler
-except:
-    from main import ledErrHandler
-
+from main import evseComInterface
+import modbusTcp
 from ntptime import settime
 from asyn import Lock,NamedTask
 from gc import mem_free, collect
@@ -75,7 +67,7 @@ class TaskHandler:
             before = mem_free()
             collect()
             after = mem_free()
-            print("Memory beofre: {} & after: {}".format(before,after))
+            #print("Memory beofre: {} & after: {}".format(before,after))
             await asyncio.sleep(delay_secs)
                     
     #Handler for wifi.    
@@ -134,6 +126,7 @@ class TaskHandler:
                 status = await self.wattmeter.wattmeterHandler()
                 self.ledErrorHandler.removeError(WATTMETER_ERR)
             except Exception as e:
+                print(e)
                 self.ledErrorHandler.addError(WATTMETER_ERR)
                 #self.log.write("{} -> {}".format(type(self.wattmeter),e))
 
@@ -145,6 +138,7 @@ class TaskHandler:
                 status = await self.evse.evseHandler()
                 self.ledErrorHandler.removeError(EVSE_ERR)
             except Exception as e:
+                print(e)
                 self.ledErrorHandler.addError(EVSE_ERR)
                 #self.log.write("{} -> {}".format(type(self.evse),e))
 

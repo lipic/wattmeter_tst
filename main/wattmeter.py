@@ -59,12 +59,14 @@ class Wattmeter:
                 self.dataLayer.data["P_minuten"].append(self.dataLayer.data["EminP"]*6)#self.dataLayer.data["P1"])
             
             self.dataLayer.data["P_minuten"][0] = len(self.dataLayer.data["P_minuten"])
-            status = await self.wattmeterInterface.writeWattmeterRegister(100,[1])
+            async with self.wattmeterInterface as w:
+                await w.writeWattmeterRegister(100,[1])
             self.lastMinute = int(time.localtime()[4]) 
             
         if(self.timeInit == True):
             if(self.lastHour is not int(time.localtime()[3])):
-                status = await self.wattmeterInterface.writeWattmeterRegister(101,[1])
+                async with self.wattmeterInterface as w:
+                    await w.writeWattmeterRegister(101,[1])
                 self.lastHour = int(time.localtime()[3])
                 if(len(self.dataLayer.data["E_hour"])<73):
                     self.dataLayer.data["E_hour"].append(self.lastHour)
@@ -90,15 +92,16 @@ class Wattmeter:
         if((self.lastDay is not int(time.localtime()[2]))and(self.timeInit == True)):
             curentYear = str(time.localtime()[0])[-2:] 
             data = {("{0:02}/{1:02}/{2}".format(time.localtime()[1],self.lastDay ,curentYear)) : [self.dataLayer.data["E1dP"] + self.dataLayer.data["E2dP"]+self.dataLayer.data["E3dP"], self.dataLayer.data["E1dN"] + self.dataLayer.data["E2dN"]+self.dataLayer.data["E3dN"]]}
-            status = await self.wattmeterInterface.writeWattmeterRegister(102,[1])
+            async with self.wattmeterInterface as w:
+                await w.writeWattmeterRegister(102,[1])
             self.lastDay = int(time.localtime()[2])
             self.fileHandler.handleData(self.DAILY_CONSUMPTION)
             self.fileHandler.writeData(self.DAILY_CONSUMPTION, data)
             self.dataLayer.data["DailyEnergy"] = self.fileHandler.readData(self.DAILY_CONSUMPTION) 
     
     async def __readWattmeter_data(self,reg,length):
-
-        receiveData = await self.wattmeterInterface.readWattmeterRegister(reg,length)
+        async with self.wattmeterInterface as w:
+                receiveData =  await w.readWattmeterRegister(reg,length)
        
         try:
             if ((receiveData != "Null") and (reg == 1000)):

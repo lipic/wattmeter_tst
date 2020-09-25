@@ -31,13 +31,15 @@ class Evse():
                     if(setting["sw,ENABLE CHARGING"] == '1'):
                         if (setting["sw,ENABLE BALANCING"] == '1'):
                             current = self.balancEvseCurrent(i)
-                            print(current)
-                            state = await self.evseInterface.writeEvseRegister(1000,[current],i+1)
+                            async with self.evseInterface as e:
+                                await e.writeEvseRegister(1000,[current],i+1)
                         else:
                             current = int(setting["sl,EVSE"])
-                            state = await self.evseInterface.writeEvseRegister(1000,[current],i+1)    
+                            async with self.evseInterface as e:
+                                await e.writeEvseRegister(1000,[current],i+1)
                     else: 
-                        state = await self.evseInterface.writeEvseRegister(1000,[0],i+1)
+                        async with self.evseInterface as e:
+                            await e.writeEvseRegister(1000,[0],i+1)
             except Exception as e:
                 raise Exception("evseHandler error: {}".format(e))
         return "Read: {}; Write: {}".format(status,state)
@@ -45,7 +47,9 @@ class Evse():
         
     async def __readEvse_data(self,reg,length,ID):
         try:
-            receiveData = await self.evseInterface.readEvseRegister(reg,length,ID)
+            async with self.evseInterface as e:
+                receiveData =  await e.readEvseRegister(reg,length,ID)
+                
             if (reg == 1000 and (receiveData != "Null") and (receiveData)):
                 if(len(self.dataLayer.data["ACTUAL_CONFIG_CURRENT"])<ID):
                     self.dataLayer.data["ACTUAL_CONFIG_CURRENT"].append((int)((((receiveData[0])) << 8)  | ((receiveData[1]))))

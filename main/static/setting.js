@@ -145,6 +145,6 @@ function Setting() {
         }),
         $(document).on("click", "#refreshSSID", function () {
             for (; document.getElementById("ssid").firstChild; ) document.getElementById("ssid").removeChild(document.getElementById("ssid").firstChild);
-            ($('#wifiStatus').html("")), $("#refreshSSID").append('<span class="spinner-border spinner-border-sm"></span>'), setting.refreshWifiClient();
+            (document.getElementById("wifiStatus").innerHTML=""), $("#refreshSSID").append('<span class="spinner-border spinner-border-sm"></span>'), setting.refreshWifiClient();
         });
 }
