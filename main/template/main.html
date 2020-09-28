@@ -10,7 +10,7 @@
         <script type="text/javascript" src="main/static/loadLibrary.js"></script>
     </head> 
     <body onload="loadLibrary()">
-     <span class="dot" style="float: right corner;"></span> 
+     <span class="dot" style="float: right corner;"></span>
         <div id="mySidenav" class="sidenav">
           <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
           <a href="#" id="overview" onclick="closeNav()">Overview</a>
@@ -19,7 +19,9 @@
           <a href="#" id="energyChart" onclick="closeNav()">Energy charts</a>
           <a href="#" id="settings" onclick="closeNav()">Settings</a>
         </div>
-        <span id="sideText" style="font-size:30px;cursor:pointer; color:#ffffff;" onclick="openNav()">&#9776; Overview</span>
+        <div style="background-color:#4B0082;">
+            <span id="sideText" style="font-size:30px;cursor:pointer; color:#ffffff;" onclick="openNav()">&#9776; Overview</span>
+        </div>
         <!-- Loading Spinner Wrapper-->
         <div class="loader text-center">
             <div class="loader-inner">

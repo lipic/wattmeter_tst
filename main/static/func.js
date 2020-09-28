@@ -167,16 +167,18 @@ function formatDate(e) {
 $(function () {
     $("div.mainContainer").load("overview", function () {
         $(".loader").hide(100);
-        try{clearTimeout(timer)}catch{};
         evseInstance = "undefined";
-        let e = new GaugeSetting('power',20,-10) 
+        let e = new GaugeSetting('power',30,0) 
         var g = e.getGauge()
         timer = setInterval(function(){
             $.ajax({ url: "/updateData" }).done(function (e) {
             $("#updateData").html(e.datalayer)
             if(evseInstanceGauge=="undefined"&&(e.NUMBER_OF_EVSE!=0)){evseInstanceGauge=new evse(e.NUMBER_OF_EVSE);evseInstanceGauge.createEvseGauge();}
             var p = (((e.P1+e.P2+e.P3) > 32767 ? (e.P1+e.P2+e.P3) - 65535 : (e.P1+e.P2+e.P3)) / 1e3).toFixed(2)
-            g.set(p)
+            g.set((p<0)?(-1*p):p)
+            powerAVGchartData = e.P_minuten
+            hourEnergyData = e.E_hour
+            dailyEnergyData = e.DailyEnergy
             var k =  (((e.E1tP+e.E2tP+e.E3tP) / 100).toFixed(1)).toString()
             for(var i = (k.length -1);i>=0;i--){
                 $('#kWh'+(k.length  - i)).text(k[i]);
@@ -193,15 +195,18 @@ $(function () {
                   evseInstanceGauge = "undefined";
                   $("div.mainContainer").load("overview", function () {
                       (document.getElementById("sideText").textContent ='\u2630'+ " Overview"); 
-                      let e = new GaugeSetting('power',20,-10) 
+                      let e = new GaugeSetting('power',30,0) 
                       var g = e.getGauge()
                         timer = setInterval(function(){
                         $.ajax({ url: "/updateData" }).done(function (e) {
                             $("#updateData").html(e.datalayer)
-                            if(evseInstanceGauge=="undefined"&&(e.NUMBER_OF_EVSE!=0)){evseInstanceGauge=new evse(e.NUMBER_OF_EVSE);evseInstanceGauge.createEvseGauge();console.log("Ahoj")}
+                            if(evseInstanceGauge=="undefined"&&(e.NUMBER_OF_EVSE!=0)){evseInstanceGauge=new evse(e.NUMBER_OF_EVSE);evseInstanceGauge.createEvseGauge();}
                             handleEvseAPI(e.NUMBER_OF_EVSE,e.ACTUAL_CONFIG_CURRENT,e.ACTUAL_OUTPUT_CURRENT,e.EV_STATE)
                             var p = (((e.P1+e.P2+e.P3) > 32767 ? (e.P1+e.P2+e.P3) - 65535 : (e.P1+e.P2+e.P3)) / 1e3).toFixed(2)
                             g.set(p)
+                            powerAVGchartData = e.P_minuten
+                            hourEnergyData = e.E_hour
+                            dailyEnergyData = e.DailyEnergy
                             var k =  (((e.E1tP+e.E2tP+e.E3tP) / 100).toFixed(1)).toString()
                             for(var i = (k.length -1);i>=0;i--){
                                 $('#kWh'+(k.length  - i)).text(k[i]);
@@ -225,7 +230,7 @@ $(function () {
                 else if("settings" == $(this).attr("id")){
                   (clearTimeout(timer),
                   $("div.mainContainer").load("settings", function () {
-                       evseInstanceGauge;
+                       evseInstanceGauge = "undefined";
                       (document.getElementById("sideText").textContent ='\u2630'+ "  Settings");
                       $("#refreshSSID").append('<span class="spinner-border spinner-border-sm"></span>'),
                       (setting = new Setting()),
@@ -238,7 +243,7 @@ $(function () {
             else if("powerChart" == $(this).attr("id")){
                 (   clearTimeout(timer),
                     $("div.mainContainer").load("powerChart", function () {
-                    evseInstanceGauge;
+                    evseInstanceGauge = "undefined";
                     if(powerGraph != 'undefined'){
                         powerGraph.destroy()
                     }
@@ -247,7 +252,6 @@ $(function () {
                     t = document.getElementById("powerGraph"),
                     n = e.getConfig();
                     powerGraph = new Chart(t, n);
-                    console.log(powerGraph)
                     timer = setInterval(function(){
                         $.ajax({ url: "/updateData" }).done(function (e) {
                         $("#updateData").html(e.datalayer)
@@ -255,13 +259,13 @@ $(function () {
                         dotControl();
                         }) 
                     },1000)
-                    loadPowerChart()
+                    loadPowerChart();
                   }))
             }    
             else if("energyChart" == $(this).attr("id")){
                   (clearTimeout(timer),
                    $("div.mainContainer").load("energyChart", function () {
-                    evseInstanceGauge;
+                    evseInstanceGauge = "undefined";
                     if(energyGraphHourly != 'undefined'){
                         energyGraphHourly.destroy();
                         energyGraphDaily.destroy();
@@ -282,17 +286,13 @@ $(function () {
                         refreshEnergyChartDaily()
                         dotControl();
                         })
-                    },60000)
+                    },1000)
                     energyGraphDaily.getDatasetMeta(1).hidden=true;
                     energyGraphDaily.update();
                     energyGraphHourly.getDatasetMeta(1).hidden=true;
                     energyGraphHourly.update()
-                    setTimeout(function () {
-                          refreshEnergyChartHourly();
-                      }, 100)
-                    setTimeout(function () {
-                            refreshEnergyChartDaily();
-                      }, 100)
+                    refreshEnergyChartHourly()
+                    refreshEnergyChartDaily()
                   }))
             }    
         }),
