@@ -50,6 +50,7 @@ class TaskHandler:
                     rtc.datetime((year, month, mday, 0, hour, minute, second, 0))
                     self.wattmeter.timeInit = True
                     self.ledErrorHandler.removeError(TIME_SYNC_ERR)
+                    delay_secs = 600
                 except Exception as e:
                     self.ledErrorHandler.addError(TIME_SYNC_ERR)
                     print("Error during time setting: {}".format(e))        
@@ -115,7 +116,7 @@ class TaskHandler:
             except Exception as e:
                 self.ledErrorHandler.addError(WIFI_HANDLER_ERR)
                 print("wifiHandler exception : {}".format(e))
-   
+    
             await asyncio.sleep(delay_secs)   
             
      #Handler for wattmeter.        
@@ -126,7 +127,6 @@ class TaskHandler:
                 status = await self.wattmeter.wattmeterHandler()
                 self.ledErrorHandler.removeError(WATTMETER_ERR)
             except Exception as e:
-                print(e)
                 self.ledErrorHandler.addError(WATTMETER_ERR)
                 #self.log.write("{} -> {}".format(type(self.wattmeter),e))
 
@@ -138,7 +138,6 @@ class TaskHandler:
                 status = await self.evse.evseHandler()
                 self.ledErrorHandler.removeError(EVSE_ERR)
             except Exception as e:
-                print(e)
                 self.ledErrorHandler.addError(EVSE_ERR)
                 #self.log.write("{} -> {}".format(type(self.evse),e))
 
@@ -155,7 +154,7 @@ class TaskHandler:
     def mainTaskHandlerRun(self):
         loop = asyncio.get_event_loop()
         loop.create_task(self.wifiHandler(2))
-        loop.create_task(self.timeHandler(600))
+        loop.create_task(self.timeHandler(1))
         loop.create_task(self.memoryHandler(1))
         loop.create_task(self.wdgHandler(1))
         loop.create_task(self.ledHandler(1))

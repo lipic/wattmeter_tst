@@ -1,6 +1,5 @@
-(powerAVGchartData = 0), (hourEnergyData = []), (dailyEnergyData = []),(powerGraph = 'undefined'),(energyGraphHourly= 'undefined'),(evseInstanceGauge="undefined");
-var refreshGraphs = 0;
-
+(powerAVGchartData = 0), (hourEnergyData = []), (dailyEnergyData = []),(powerGraph = 'undefined'),(energyGraphHourly= 'undefined'),(evseInstanceGauge="undefined"),
+(timer = 0),(refreshGraphs = 0);
 
 function updateData() {
     $.ajax({ url: "/updateData" }).done(function (e) {
@@ -167,8 +166,7 @@ function formatDate(e) {
 $(function () {
     $("div.mainContainer").load("overview", function () {
         $(".loader").hide(100);
-        evseInstance = "undefined";
-        let e = new GaugeSetting('power',30,0) 
+        var e = new GaugeSetting('power',30,0) 
         var g = e.getGauge()
         timer = setInterval(function(){
             $.ajax({ url: "/updateData" }).done(function (e) {
@@ -195,7 +193,7 @@ $(function () {
                   evseInstanceGauge = "undefined";
                   $("div.mainContainer").load("overview", function () {
                       (document.getElementById("sideText").textContent ='\u2630'+ " Overview"); 
-                      let e = new GaugeSetting('power',30,0) 
+                      var e = new GaugeSetting('power',30,0) 
                       var g = e.getGauge()
                         timer = setInterval(function(){
                         $.ajax({ url: "/updateData" }).done(function (e) {
@@ -248,7 +246,7 @@ $(function () {
                         powerGraph.destroy()
                     }
                     (document.getElementById("sideText").textContent ='\u2630'+ "  Power chart");
-                    let e = new powerChart(refreshPowerChart),
+                    var e = new powerChart(refreshPowerChart),
                     t = document.getElementById("powerGraph"),
                     n = e.getConfig();
                     powerGraph = new Chart(t, n);
@@ -271,10 +269,10 @@ $(function () {
                         energyGraphDaily.destroy();
                     }
                     (document.getElementById("sideText").textContent ='\u2630'+ "  Energy charts");
-                    let e = new energyChart("", "Hourly E [Wh]", "Wh"),
+                    var e = new energyChart("", "Hourly E [Wh]", "Wh"),
                     t = new energyChart("", "Daily E [kWh]", "kWh");
                     (o = document.getElementById("energyGraph_hourly")), (d = e.getConfig(24)), (energyGraphHourly = new Chart(o, d));
-                    let i = document.getElementById("energyGraph_daily"),
+                    var i = document.getElementById("energyGraph_daily"),
                     s = t.getConfig(31);
                     (energyGraphDaily = new Chart(i, s));
                     timer = setInterval(function(){
