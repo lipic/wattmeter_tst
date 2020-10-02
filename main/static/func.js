@@ -166,14 +166,14 @@ function formatDate(e) {
 $(function () {
     $("div.mainContainer").load("overview", function () {
         $(".loader").hide(100);
-        var e = new GaugeSetting('power',30,0) 
+        var e = new GaugeSetting('power',20,0) 
         var g = e.getGauge()
         timer = setInterval(function(){
             $.ajax({ url: "/updateData" }).done(function (e) {
             $("#updateData").html(e.datalayer)
             if(evseInstanceGauge=="undefined"&&(e.NUMBER_OF_EVSE!=0)){evseInstanceGauge=new evse(e.NUMBER_OF_EVSE);evseInstanceGauge.createEvseGauge();}
             var p = (((e.P1+e.P2+e.P3) > 32767 ? (e.P1+e.P2+e.P3) - 65535 : (e.P1+e.P2+e.P3)) / 1e3).toFixed(2)
-            g.set((p<0)?(-1*p):p)
+            g.set(((p>30?30:p)<0)?(-1*(p>30?30:p)):(p>30?30:p))
             powerAVGchartData = e.P_minuten
             hourEnergyData = e.E_hour
             dailyEnergyData = e.DailyEnergy
@@ -193,7 +193,7 @@ $(function () {
                   evseInstanceGauge = "undefined";
                   $("div.mainContainer").load("overview", function () {
                       (document.getElementById("sideText").textContent ='\u2630'+ " Overview"); 
-                      var e = new GaugeSetting('power',30,0) 
+                      var e = new GaugeSetting('power',20,0) 
                       var g = e.getGauge()
                         timer = setInterval(function(){
                         $.ajax({ url: "/updateData" }).done(function (e) {
@@ -201,7 +201,7 @@ $(function () {
                             if(evseInstanceGauge=="undefined"&&(e.NUMBER_OF_EVSE!=0)){evseInstanceGauge=new evse(e.NUMBER_OF_EVSE);evseInstanceGauge.createEvseGauge();}
                             handleEvseAPI(e.NUMBER_OF_EVSE,e.ACTUAL_CONFIG_CURRENT,e.ACTUAL_OUTPUT_CURRENT,e.EV_STATE)
                             var p = (((e.P1+e.P2+e.P3) > 32767 ? (e.P1+e.P2+e.P3) - 65535 : (e.P1+e.P2+e.P3)) / 1e3).toFixed(2)
-                            g.set(p)
+                            g.set(((p>30?30:p)<0)?(-1*(p>30?30:p)):(p>30?30:p))
                             powerAVGchartData = e.P_minuten
                             hourEnergyData = e.E_hour
                             dailyEnergyData = e.DailyEnergy

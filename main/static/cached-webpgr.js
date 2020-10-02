@@ -4,6 +4,7 @@ function _cacheScript(e, t, a) {
         4 == n.readyState && (200 == n.status ? localStorage.setItem(e, JSON.stringify({ content: n.responseText, version: t })) : console.warn("error loading " + a));
     }),
         n.open("GET", a, !0),
+        //n.setRequestHeader("Content-Type", "application/javascript;charset=UTF-8"),
         n.send();
 }
 function _loadScript(e, t, a, n) {

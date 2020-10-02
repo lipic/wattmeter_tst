@@ -34,8 +34,7 @@ function Setting() {
             n))
                 n.hasOwnProperty(i) &&
                     "sl" == (i = i.split(","))[0] &&
-                    (console.log(n[i[0] + "," + i[1]]),
-                    $(
+                    ($(
                         ' <div class="container text-center mt-3"> <p id="' +
                             i[0] +
                             i[1] +
@@ -64,7 +63,7 @@ function Setting() {
                                 null != t && clearTimeout(t),
                                 (t = setInterval(function () {
                                     var i, a;
-                                    (i = "sl," + e), (a = n), console.log(i, a), self.saveSetting(i, a), clearTimeout(t);
+                                    (i = "sl," + e), (a = n), self.saveSetting(i, a), clearTimeout(t);
                                 }, 3e3));
                         },
                     }));
