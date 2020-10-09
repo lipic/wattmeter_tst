@@ -215,7 +215,7 @@ $(function() {
                         $('#dkWh' + (l.length - i)).text(l[i]);
                     }
                     $('#avgE').text(getAvgEnergy())
-                    $('.g-circle').css('--myVar', getConsumptionIndicator(getAvgEnergy(), e.E1dP));
+                    $('.g-circle').css('--myVar', getConsumptionIndicator(getAvgEnergy(), ((e.E1dP + e.E2dP + e.E3dP) / 100).toFixed(1)));
                     handleEvseAPI(e.NUMBER_OF_EVSE, e.ACTUAL_CONFIG_CURRENT, e.ACTUAL_OUTPUT_CURRENT, e.EV_STATE)
                     dotControl();
                 })
@@ -249,7 +249,7 @@ $(function() {
                                 $('#dkWh' + (l.length - i)).text(l[i]);
                             }
                             $('#avgE').text(getAvgEnergy())
-                            $('.g-circle').css('--myVar', getConsumptionIndicator(getAvgEnergy(), e.E1dP));
+                            $('.g-circle').css('--myVar', getConsumptionIndicator(getAvgEnergy(), ((e.E1dP + e.E2dP + e.E3dP) / 100).toFixed(1)));
                             handleEvseAPI(e.NUMBER_OF_EVSE, e.ACTUAL_CONFIG_CURRENT, e.ACTUAL_OUTPUT_CURRENT, e.EV_STATE)
                             dotControl();
                         })
