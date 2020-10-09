@@ -1,7 +1,7 @@
 import uasyncio as asyncio
 import ledErrHandler
 import wattmeterComInterface
-from main import evseComInterface
+import evseComInterface
 import modbusTcp
 from ntptime import settime
 from asyn import Lock,NamedTask
@@ -50,11 +50,13 @@ class TaskHandler:
                     rtc.datetime((year, month, mday, 0, hour, minute, second, 0))
                     self.wattmeter.timeInit = True
                     self.ledErrorHandler.removeError(TIME_SYNC_ERR)
-                    delay_secs = 600
                 except Exception as e:
                     self.ledErrorHandler.addError(TIME_SYNC_ERR)
                     print("Error during time setting: {}".format(e))        
+            
+            delay_secs = 600
             await asyncio.sleep(delay_secs)
+            
             
     #Handler for time
     async def wdgHandler(self,delay_secs):

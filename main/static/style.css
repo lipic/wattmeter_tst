@@ -4,61 +4,8 @@ html {
     background-image: url(http://getwallpapers.com/wallpaper/full/4/f/c/1416101-black-and-gray-backgrounds-1920x1200-for-iphone-6.jpg) !important;
     background-repeat: repeat !important;
     background-color: #181818 !important
-}
+    display: flex;
 
-ul.menu { 
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    position: relative;
-    background-color: #000 height: 100%;
-    overflow: auto
-}
-
-ul.menu li a {
-    float: left;
-    padding: 15px;
-    color: #fff;
-    display: block;
-    background-color: #000;
-    text-align: center;
-    text-decoration: none;
-    width: 50%;
-    padding: 8px 16px;
-    border: .005em solid #000
-}
-
-ul.menu li a.active {
-    background-color: orange;
-    color: #000
-}
-
-ul.menu li a:hover:not(.active) {
-    background-color: #007bff;
-    color: #000
-}
-
-@media screen and (max-width:2000px) {
-    ul.menu {
-        width: 100%;
-        position: relative
-    }
-    ul.menu li a {
-        float: left;
-        padding: 15px
-    }
-}
-
-@media screen and (max-width:400px) {
-    ul.menu {
-        width: 100%;
-        position: relative
-    }
-    ul.menu li a {
-        float: left;
-        padding: 15px
-    }
 }
 
 footer {
@@ -243,3 +190,90 @@ footer {
   font-size: 36px;
   margin-left: 50px;
 }
+
+.g-number {
+    position: absolute;
+    width: 350px;
+    top: 30%;
+    text-align: center;
+    font-size: 32px;
+    z-index: 10;
+    color: #fff;
+}
+
+.g-container {
+    position: relative;
+    width: 350px;
+    height: 340px;
+    margin: auto;
+}
+
+.g-contrast {
+    filter: contrast(15) hue-rotate(0);
+    width: 350px;
+    height: 340px;
+    overflow: hidden;
+   
+}
+
+.g-circle {
+    position: relative;
+    width: 350px;
+    height: 340px;
+    box-sizing: border-box;
+    filter: blur(8px);
+}
+
+.g-circle:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(0);
+    width: 270px;
+    height: 270px;
+    background-color: var(--myVar);
+    border-radius: 42% 38% 62% 49% / 45%;
+    animation: rotate 10s infinite linear;
+}
+
+.g-circle:before {
+    content: "";
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background-color: #606661;
+    z-index: 10;
+}
+
+@keyframes rotate {
+    50% {
+        border-radius: 45% / 42% 38% 58% 49%;
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(720deg);
+    }
+}
+@keyframes hueRotate {
+    100% {
+        filter: contrast(15) hue-rotate(360deg);
+    }
+}
+.dim{
+    color:#FFA500;
+    font-size: 30px;
+    font-weight: bold;
+    }
+.unit{
+    color:#808080;
+    font-size: 28px;
+    font-weight: bold;
+    }
+.value{
+    color:white;
+    font-weight: bold;
+    }
