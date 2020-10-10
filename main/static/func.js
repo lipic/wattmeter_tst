@@ -186,9 +186,11 @@ function formatDate(e) {
 }
 
 function getConsumptionIndicator(Eavg, E) {
-    if ((Eavg + 1) < E) return 'red';
-    else if ((Eavg - 1) > E) return 'blue';
-    else return 'green';
+    if (E > (Eavg + 1)) {
+        return 'red';
+    } else if (E < (Eavg - 1)) {
+        return 'blue';
+    } else return 'green';
 }
 $(function() {
     $("div.mainContainer").load("overview", function() {

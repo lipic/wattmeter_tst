@@ -134,8 +134,8 @@ function Setting() {
     $(document).on("click", "#setSSID", function() {
             $("#setSSID").append('<span class="spinner-border spinner-border-sm"></span>'),
                 ($('#wifiStatus').html("Waiting .... ")),
-                ($('#wifiStatus').css("color", "#FBD428")),
-                (password = $('passwordField').value);
+                ($('#wifiStatus').css = ('color', "#FBD428")),
+                (password = document.getElementById("passwordField").value);
             var e = $("input[name='ssid']:checked").val();
             e
                 ?
@@ -147,17 +147,17 @@ function Setting() {
                     success: function(t) {
                         $("#updateWificlient").html(t.datalayer),
                             0 == t.process ?
-                            (($('#wifiStatus').html("Please choose ssid client first!")), ($('#wifiStatus').css("color", "#FF0000"))) :
+                            (($('#wifiStatus').html("Please choose ssid client first!"), ($('#wifiStatus').css = ("color", "#FF0000")))) :
                             1 == t.process ?
-                            (($('#wifiStatus').html("Can not connect to Wattmeter SSID")), ($('#wifiStatus').css("color", "#FF0000"))) :
+                            (($('#wifiStatus').html("Can not connect to Wattmeter SSID"), ($('#wifiStatus').css = ("color", "#FF0000")))) :
                             2 == t.process ?
-                            (($('#wifiStatus').html("Currently connected to: " + e)), ($('#wifiStatus').css("color", "#74DF00"))) :
+                            (($('#wifiStatus').html("Currently connected to: " + e), ($('#wifiStatus').css = ("color", "#74DF00")))) :
                             3 == t.process ?
-                            (($('#wifiStatus').html("Currently connected to: " + e)), ($('#wifiStatus').css("color", "#74DF00"))) :
-                            (($('#wifiStatus').html("Error during connection to: " + e)), ($('#wifiStatus').css("color", "#FF0000")));
+                            (($('#wifiStatus').html("Currently connected to: " + e), (($('#wifiStatus').css = ("color", "#74DF00"))))) :
+                            (($('#wifiStatus').html("Error during connection to: " + e), (($('#wifiStatus').css = ("color", "#FF0000")))));
                     },
                 }) :
-                (($('#wifiStatus').html("Please choose ssid client first!")), ($('#wifiStatus').css('color', "#FF0000"))),
+                (($('#wifiStatus').html("Please choose ssid client first!"), (($('#wifiStatus').css = ("color", "#FF0000"))))),
                 $("#setSSID").find("span").remove();
         }),
         $(document).on("click", "#refreshSSID", function() {
