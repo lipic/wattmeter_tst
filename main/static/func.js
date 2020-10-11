@@ -186,6 +186,7 @@ function formatDate(e) {
 }
 
 function getConsumptionIndicator(Eavg, E) {
+    console.log("Eavg:", Eavg, "E:", E)
     if (E > (Eavg + 1)) {
         return 'red';
     } else if (E < (Eavg - 1)) {
