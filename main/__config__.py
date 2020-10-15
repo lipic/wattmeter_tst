@@ -12,14 +12,23 @@ class Config:
         self.config['sw,AUTOMATIC UPDATE'] = '0'   #Reg 1001
         self.config['txt,ACTUAL SW VERSION']='0'    #Reg 1002
         self.config['sw,ENABLE CHARGING']='0'        #Reg 1003
-        self.config['sl,BREAKER']='6'                             #Reg 1004 
-        self.config['sl,EVSE']='6'                                     #Reg 1005
-        self.config['sl,TIME-ZONE']='2'                         #Reg 1006
-        self.config['in,EVSE-NUMBER']='0'                   #Reg 1007
-        self.config['sw,ENABLE BALANCING']='0'     #Reg 1008
-        self.config['sw,WHEN HDO: RELAY ON']='0' #Reg 1009
-        self.config['sw,TESTING SOFTWARE']='0'      #Reg 1010
-        self.config['ID'] = '0'                                            #Reg 1011
+        self.config['in,BREAKER']='6'                             #Reg 1004 
+        self.config['in,TIME-ZONE']='2'                         #Reg 1005
+        self.config['in,EVSE-NUMBER']='0'                   #Reg 1006
+        self.config['sw,ENABLE BALANCING']='0'     #Reg 1007
+        self.config['sw,WHEN HDO: RELAY ON']='0' #Reg 1008
+        self.config['sw,TESTING SOFTWARE']='0'      #Reg 1009
+        self.config['ID'] = '0'                                            #Reg 1010
+        self.config['inp,EVSE1']='6'                                     #Reg 1011
+        self.config['inp,EVSE2']='6'                                      #Reg 1011
+        self.config['inp,EVSE3']='6'
+        self.config['inp,EVSE4']='6'
+        self.config['inp,EVSE5']='6'
+        self.config['inp,EVSE6']='6'
+        self.config['inp,EVSE7']='6'
+        self.config['inp,EVSE8']='6'
+        self.config['inp,EVSE9']='6'
+        self.config['inp,EVSE10']='6'
         self.SETTING_PROFILES = 'setting.dat'
         self.handle_configure('txt,ACTUAL SW VERSION',self.boot.get_version(""))
  

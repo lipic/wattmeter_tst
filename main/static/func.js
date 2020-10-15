@@ -57,18 +57,32 @@ function updateData() {
     })
 }
 
+function chargingAnim(state, id) {
+    for (var i = 1; i < 5; i++) {
+        $(".charge" + (i + ((id - 1) * 4))).css("animation-play-state", state);
+    }
+}
+
 function handleEvseAPI(numberOfEvse, ACTUAL_CONFIG_CURRENT, ACTUAL_OUTPUT_CURRENT, EV_STATE) {
     for (var i = 1; i <= numberOfEvse; i++) {
-        ($('#ACTUAL_CONFIG_CURRENT' + i).text(typeof ACTUAL_CONFIG_CURRENT[i - 1] != "undefined" ? ACTUAL_CONFIG_CURRENT[i - 1] : "COMM ERR.")),
-        ($('#ACTUAL_OUTPUT_CURRENT' + i).text(typeof ACTUAL_OUTPUT_CURRENT[i - 1] != "undefined" ? ACTUAL_OUTPUT_CURRENT[i - 1] : "COMM ERR."))
+        ($('#ACTUAL_CONFIG_CURRENT' + i).text(typeof ACTUAL_CONFIG_CURRENT[i - 1] != "undefined" ? ACTUAL_CONFIG_CURRENT[i - 1] + " A" : "COMM ERR.")),
+        ($('#ACTUAL_OUTPUT_CURRENT' + i).text(typeof ACTUAL_OUTPUT_CURRENT[i - 1] != "undefined" ? ACTUAL_OUTPUT_CURRENT[i - 1] + " A" : "COMM ERR."))
         if (typeof EV_STATE[i - 1] == "undefined") {
             $('#EV_STATE' + i).text("COMM ERR.")
+            chargingAnim('paused', i)
+            $('.charge' + (1 + ((i - 1) * 4))).css({ 'background-color': 'black' });
         } else if (EV_STATE[i - 1] == 1) {
             $('#EV_STATE' + i).text("UNPLUG")
+            chargingAnim('paused', i)
+            $('.charge' + (1 + ((i - 1) * 4))).css({ 'background-color': 'red' });
         } else if (EV_STATE[i - 1] == 2) {
             $('#EV_STATE' + i).text("PLUG")
+            chargingAnim('paused', i)
+            $('.charge' + (1 + ((i - 1) * 4))).css({ 'background-color': 'yellow' });
         } else if (EV_STATE[i - 1] == 3) {
             $('#EV_STATE' + i).text("CHARGING")
+            chargingAnim('running', i)
+            $('.charge' + (1 + ((i - 1) * 4))).css({ 'background-color': 'green' });
         }
     }
 }
@@ -186,7 +200,6 @@ function formatDate(e) {
 }
 
 function getConsumptionIndicator(Eavg, E) {
-    console.log("Eavg:", Eavg, "E:", E)
     if (E > (Eavg + 1)) {
         return 'red';
     } else if (E < (Eavg - 1)) {

@@ -13,3 +13,9 @@ OK -> Switch View
 OK -> Pridat denni spotrebu po fazich
 OK -> Flow graph
 ########################################__Version__1.0__################################
+OK -> UnitTest wattmeterInterface,evseInterface,ledErrHandler
+OK -> Blikajici tecka
+OK -> Optimalizovat func.js
+OK -> PC verze problem prvnio loadu chartjs
+OK -> Evse gauge
+OK -> Setting view for EVSE

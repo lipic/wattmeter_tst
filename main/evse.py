@@ -34,7 +34,7 @@ class Evse():
                             async with self.evseInterface as e:
                                 await e.writeEvseRegister(1000,[current],i+1)
                         else:
-                            current = int(setting["sl,EVSE"])
+                            current = int(setting["inp,EVSE{}".format(i+1)])
                             async with self.evseInterface as e:
                                 await e.writeEvseRegister(1000,[current],i+1)
                     else: 
@@ -100,8 +100,7 @@ class Evse():
         if((I3_P > I1_P)and(I3_P > I2_P)):
             maxCurrent = int(I3_P/100)
             
-        delta = int(self.setting.config["sl,BREAKER"]) - maxCurrent
-        print("Max Current: {}, Delta: {} ".format(maxCurrent,delta))
+        delta = int(self.setting.config["in,BREAKER"]) - maxCurrent
         # Kdyz je proud vetsi nez dvojnasobek proudu jsitice okamzite vypni a pak pockej 10s
       #  if ((maxCurrent <= int(self.setting.config["sl,BREAKER"])  * 2) and (0 == self.__Delay_for_breaker)) :
         self.__cntCurrent = self.__cntCurrent+1
@@ -146,8 +145,8 @@ class Evse():
         if(self.__regulationDelay>60):
             self.__regulationDelay = 0
         
-        if(self.__requestCurrent > int(self.setting.config["sl,EVSE"])):
-            self.__requestCurrent = int(self.setting.config["sl,EVSE"])
+        if(self.__requestCurrent > int(self.setting.config["inp,EVSE"+(ID+1)])):
+            self.__requestCurrent = int(self.setting.config["inp,EVSE"+(ID+1)])
         
         return  self.__requestCurrent
 

@@ -45,7 +45,7 @@ class TaskHandler:
                     rtc=RTC()
                     import utime
                     tampon1=utime.time() 
-                    tampon2=tampon1+int(setting["sl,TIME-ZONE"])*3600
+                    tampon2=tampon1+int(setting["in,TIME-ZONE"])*3600
                     (year, month, mday, hour, minute, second, weekday, yearday)=utime.localtime(tampon2)
                     rtc.datetime((year, month, mday, 0, hour, minute, second, 0))
                     self.wattmeter.timeInit = True
