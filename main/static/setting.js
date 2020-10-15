@@ -107,7 +107,7 @@ function Setting() {
                 ' <span class="dim">EVSE setting: ' + i + ' </span>' +
 
                 '<div class="row mt-3">' +
-                '<div class="col"><p> EVSE CURRENT [A]</p></div>' +
+                '<div class="col"><p>CURRENT</p></div>' +
                 '<div class="col"><div class="input-group">' +
                 '<span class="input-group-btn"><button id="inp,EVSE' + i + '" class="btn btn-primary btn-minuse" type="button">-</button></span>' +
                 '<input id="inpEVSE' + i + '" type="text" class="form-control no-padding add-color text-center height-25" maxlength="2" value="' + n["inp,EVSE" + i] + '">' +
