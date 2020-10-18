@@ -101,6 +101,7 @@ class Evse():
             maxCurrent = int(I3_P/100)
             
         delta = int(self.setting.config["in,BREAKER"]) - maxCurrent
+        print(self.setting.config["in,BREAKER"])
         # Kdyz je proud vetsi nez dvojnasobek proudu jsitice okamzite vypni a pak pockej 10s
       #  if ((maxCurrent <= int(self.setting.config["sl,BREAKER"])  * 2) and (0 == self.__Delay_for_breaker)) :
         self.__cntCurrent = self.__cntCurrent+1
@@ -145,8 +146,8 @@ class Evse():
         if(self.__regulationDelay>60):
             self.__regulationDelay = 0
         
-        if(self.__requestCurrent > int(self.setting.config["inp,EVSE"+(ID+1)])):
-            self.__requestCurrent = int(self.setting.config["inp,EVSE"+(ID+1)])
+        if(self.__requestCurrent > int(self.setting.config["inp,EVSE{}".format(ID+1)])):
+            self.__requestCurrent = int(self.setting.config["inp,EVSE{}".format(ID+1)])
         
         return  self.__requestCurrent
 
