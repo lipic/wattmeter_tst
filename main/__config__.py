@@ -18,7 +18,9 @@ class Config:
         self.config['sw,ENABLE BALANCING']='0'     #Reg 1007
         self.config['sw,WHEN HDO: RELAY ON']='0' #Reg 1008
         self.config['sw,TESTING SOFTWARE']='0'      #Reg 1009
+        self.config['sw,Access Point'] = '1'                    #Reg 1010
         self.config['ID'] = '0'                                            #Reg 1010
+        self.config['AP'] = '0'                                            #Reg 1010
         self.config['inp,EVSE1']='6'                                     #Reg 1011
         self.config['inp,EVSE2']='6'                                      #Reg 1011
         self.config['inp,EVSE3']='6'

@@ -28,13 +28,26 @@ class TaskHandler:
         self.webServerApp = webServerApp.WebServerApp(wifi,self.wattmeter, self.evse) #Create instance of Webserver App
         self.uModBusTCP = modbusTcp.Server(wattInterface,evseInterface)
         self.settingAfterNewConnection = False
-        self.wdt = WDT(timeout=60000)
+        self.wdt = WDT(timeout=60000) 
         self.setting = __config__.Config()
         self.wifiManager = wifi
         self.ledErrorHandler = ledErrHandler.ErrorHandler()
         self.ledRun  = Pin(23, Pin.OUT) # set pin high on creation
         self.ledWifi = Pin(22, Pin.OUT) # set pin high on creation
+        self.ap = Pin(5, Pin.IN, Pin.PULL_UP)
+        self.ap.irq(trigger=Pin.IRQ_FALLING, handler=self.callback)
      
+    def callback(self,pin):
+        setting = self.setting.getConfig()
+        if setting['sw,Access Point'] == '1':
+            print("AP OFF")
+            self.setting.handle_configure('sw,Access Point','0')
+            self.wifiManager.turnOffAp()
+        else:
+            print("AP ON")
+            self.setting.handle_configure('sw,Access Point','1')
+            self.wifiManager.turnONAp()
+            
      #Handler for time
     async def timeHandler(self,delay_secs):
         while True:
@@ -152,7 +165,29 @@ class TaskHandler:
             else:
                 self.ledRun.on()
             await asyncio.sleep(delay_secs)
+        
+    async def localWebserverHandler(self,delay_secs):
+        while True:
+            setting = self.setting.getConfig()
+            if setting['sw,Access Point'] == '1':
+                if((NamedTask.is_running('app1')) == False):
+                    loop = asyncio.get_event_loop()
+                    loop.create_task(NamedTask('app1',self.webServerApp.webServerRun,1,'192.168.4.1','app1')())
+            else:                
+                try:
+                    if(((NamedTask.is_running('app1')) == True)):
+                        res = await NamedTask.cancel('app1')
+                        if res: 
+                            print('app1 will be cancelled when next scheduled')
+                        else:
+                            print('app1 was not cancellable.')                              
+                        self.ledErrorHandler.removeError(WEBSERVER_CANCELATION_ERR)
+                except Exception as e:
+                    self.ledErrorHandler.addError(WEBSERVER_CANCELATION_ERR)
+                    print("Error during cancelation: {}".format(e))
             
+            await asyncio.sleep(delay_secs)          
+    
     def mainTaskHandlerRun(self):
         loop = asyncio.get_event_loop()
         loop.create_task(self.wifiHandler(2))
@@ -164,6 +199,6 @@ class TaskHandler:
         loop.create_task(self.uModBusTCP.run(loop))
         loop.create_task(self.wattmeterHandler(1))
         loop.create_task(self.evseHandler(1))
+        loop.create_task(self.localWebserverHandler(2))
         loop.create_task(self.ledErrorHandler.ledErrorHandler())
-        loop.create_task(NamedTask('app1',self.webServerApp.webServerRun,1,'192.168.4.1','app1')())
         loop.run_forever()
