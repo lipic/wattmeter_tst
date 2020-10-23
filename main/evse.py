@@ -1,161 +1,71 @@
-import uasyncio as asyncio
-import time
+_H='SUCCESS_READ'
+_G=False
+_F='ACTUAL_OUTPUT_CURRENT'
+_E='inp,EVSE{}'
+_D='NUMBER_OF_EVSE'
+_C='EV_STATE'
+_B='ACTUAL_CONFIG_CURRENT'
+_A=True
+import uasyncio as asyncio,time
 from main import __config__
-
-class Evse():
- 
-    
-    def __init__(self, wattmeter,evse):
-        self.evseInterface = evse
-        self.dataLayer = DataLayer()
-        self.setting = __config__.Config()
-        self.wattmeter = wattmeter
-        self.regulationLock1 = False
-        self.lock1Counter = 0
-        self.__regulationDelay = 0
-        self.__cntCurrent = 0
-        self.__requestCurrent = 0
-    
-    async def evseHandler(self):
-        #first read data from evse
-        current = 0
-        state = ""
-        status = ''
-        setting = self.setting.getConfig()
-        self.dataLayer.data['NUMBER_OF_EVSE'] = setting["in,EVSE-NUMBER"]
-        for i in range(0,int(self.dataLayer.data['NUMBER_OF_EVSE'])):
-            try:
-                status = await self.__readEvse_data(1000,3,ID=(i+1))
-                if((status == 'SUCCESS_READ') == True):
-                    #If get max current accordig to wattmeter
-                    if(setting["sw,ENABLE CHARGING"] == '1'):
-                        if (setting["sw,ENABLE BALANCING"] == '1'):
-                            current = self.balancEvseCurrent(i)
-                            async with self.evseInterface as e:
-                                await e.writeEvseRegister(1000,[current],i+1)
-                        else:
-                            current = int(setting["inp,EVSE{}".format(i+1)])
-                            async with self.evseInterface as e:
-                                await e.writeEvseRegister(1000,[current],i+1)
-                    else: 
-                        async with self.evseInterface as e:
-                            await e.writeEvseRegister(1000,[0],i+1)
-            except Exception as e:
-                raise Exception("evseHandler error: {}".format(e))
-        return "Read: {}; Write: {}".format(status,state)
-          
-        
-    async def __readEvse_data(self,reg,length,ID):
-        try:
-            async with self.evseInterface as e:
-                receiveData =  await e.readEvseRegister(reg,length,ID)
-                
-            if (reg == 1000 and (receiveData != "Null") and (receiveData)):
-                if(len(self.dataLayer.data["ACTUAL_CONFIG_CURRENT"])<ID):
-                    self.dataLayer.data["ACTUAL_CONFIG_CURRENT"].append((int)((((receiveData[0])) << 8)  | ((receiveData[1]))))
-                    self.dataLayer.data["ACTUAL_OUTPUT_CURRENT"].append((int)((((receiveData[2])) << 8)  | ((receiveData[3]))))
-                    self.dataLayer.data["EV_STATE"].append((int)((((receiveData[4])) << 8)  | ((receiveData[5]))))
-                else:
-                    self.dataLayer.data["ACTUAL_CONFIG_CURRENT"][ID-1] =     (int)((((receiveData[0])) << 8)  | ((receiveData[1])))
-                    self.dataLayer.data["ACTUAL_OUTPUT_CURRENT"][ID-1] =     (int)((((receiveData[2])) << 8)  | ((receiveData[3])))
-                    self.dataLayer.data["EV_STATE"][ID-1] =     (int)((((receiveData[4])) << 8)  | ((receiveData[5])))
-                
-                return 'SUCCESS_READ'
-                        
-            else: 
-                return "Timed out waiting for result."
-                 
-        except Exception as e:
-            raise Exception("__readEvse_data error: {}".format(e))
-
-    def balancEvseCurrent(self,ID):
-        I1_P = 0
-        I2_P = 0
-        I3_P = 0
-        I1_N = 0
-        I2_N = 0
-        I3_N = 0
-        maxCurrent = 0
-        if (self.wattmeter.dataLayer.data["I1"] > 32767):
-            I1_N = self.wattmeter.dataLayer.data["I1"] - 65535
-        else:
-            I1_P = self.wattmeter.dataLayer.data["I1"]
-
-        if (self.wattmeter.dataLayer.data["I2"] > 32767):
-            I2_N = self.wattmeter.dataLayer.data["I2"] - 65535
-        else:
-            I2_P = self.wattmeter.dataLayer.data["I2"]
-            
-        if (self.wattmeter.dataLayer.data["I3"] > 32767):
-            I3_N = self.wattmeter.dataLayer.data["I3"] - 65535
-        else:
-            I3_P = self.wattmeter.dataLayer.data["I3"]
-
-        if((I1_P > I2_P)and(I1_P > I3_P)):
-            maxCurrent = int(I1_P/100)
-
-        if((I2_P > I1_P)and(I2_P > I3_P)):
-            maxCurrent = int(I2_P/100)
-            
-        if((I3_P > I1_P)and(I3_P > I2_P)):
-            maxCurrent = int(I3_P/100)
-            
-        delta = int(self.setting.config["in,BREAKER"]) - maxCurrent
-        print(self.setting.config["in,BREAKER"])
-        # Kdyz je proud vetsi nez dvojnasobek proudu jsitice okamzite vypni a pak pockej 10s
-      #  if ((maxCurrent <= int(self.setting.config["sl,BREAKER"])  * 2) and (0 == self.__Delay_for_breaker)) :
-        self.__cntCurrent = self.__cntCurrent+1
-        #Dle normy je zmena proudu EV nasledujici po zmene pracovni cyklu PWM maximalne 5s
-        if (self.__cntCurrent >= 3) :
-            if (int(self.dataLayer.data["EV_STATE"][ID]) != 3):
-                if(delta < 0):
-                    self.__requestCurrent = 0
-                else:
-                    if(self.__regulationDelay>0):
-                        self.__requestCurrent  = 0
-                    else:
-                        self.__requestCurrent  = 6
-            else :
-                # kdyz proud presahne proud jistice, tak odecti deltu od nastavovaneho proudu
-                if (delta < 0):
-                    if((self.__requestCurrent + delta)< 0):
-                        self.__requestCurrent = 0
-                    else:
-                        if((self.__requestCurrent + delta)<6):
-                            self.__regulationDelay = 1
-                        self.__requestCurrent = self.__requestCurrent + delta
-                        self.regulationLock1 = True
-                        self.lock1Counter = 1
-                        
-                else:
-                    if((self.regulationLock1 != True)):
-                        self.__requestCurrent  = self.__requestCurrent + 1
-
-            self.__cntCurrent = 0
-            
-       # print("self.regulationLock1",self.regulationLock1)
-        if(self.lock1Counter>=30):
-            self.lock1Counter = 0
-            self.regulationLock1 = False
-                
-        if((self.regulationLock1 == True) or (self.lock1Counter > 0)):                        
-            self.lock1Counter = self.lock1Counter + 1
-            
-        if(self.__regulationDelay>0):
-            self.__regulationDelay = self.__regulationDelay +1
-        if(self.__regulationDelay>60):
-            self.__regulationDelay = 0
-        
-        if(self.__requestCurrent > int(self.setting.config["inp,EVSE{}".format(ID+1)])):
-            self.__requestCurrent = int(self.setting.config["inp,EVSE{}".format(ID+1)])
-        
-        return  self.__requestCurrent
-
-        
+class Evse:
+	def __init__(A,wattmeter,evse):A.evseInterface=evse;A.dataLayer=DataLayer();A.setting=__config__.Config();A.wattmeter=wattmeter;A.regulationLock1=_G;A.lock1Counter=0;A.__regulationDelay=0;A.__cntCurrent=0;A.__requestCurrent=0
+	async def evseHandler(A):
+		G='1';D=0;H='';F='';E=A.setting.getConfig();A.dataLayer.data[_D]=E['in,EVSE-NUMBER']
+		for C in range(0,int(A.dataLayer.data[_D])):
+			try:
+				F=await A.__readEvse_data(1000,3,ID=C+1)
+				if(F==_H)==_A:
+					if E['sw,ENABLE CHARGING']==G:
+						if E['sw,ENABLE BALANCING']==G:
+							D=A.balancEvseCurrent(C)
+							async with A.evseInterface as B:await B.writeEvseRegister(1000,[D],C+1)
+						else:
+							D=int(E[_E.format(C+1)])
+							async with A.evseInterface as B:await B.writeEvseRegister(1000,[D],C+1)
+					else:
+						async with A.evseInterface as B:await B.writeEvseRegister(1000,[0],C+1)
+			except Exception as B:raise Exception('evseHandler error: {}'.format(B))
+		return 'Read: {}; Write: {}'.format(F,H)
+	async def __readEvse_data(B,reg,length,ID):
+		C=ID
+		try:
+			async with B.evseInterface as D:A=await D.readEvseRegister(reg,length,C)
+			if reg==1000 and A!='Null'and A:
+				if len(B.dataLayer.data[_B])<C:B.dataLayer.data[_B].append(int(A[0]<<8|A[1]));B.dataLayer.data[_F].append(int(A[2]<<8|A[3]));B.dataLayer.data[_C].append(int(A[4]<<8|A[5]))
+				else:B.dataLayer.data[_B][C-1]=int(A[0]<<8|A[1]);B.dataLayer.data[_F][C-1]=int(A[2]<<8|A[3]);B.dataLayer.data[_C][C-1]=int(A[4]<<8|A[5])
+				return _H
+			else:return'Timed out waiting for result.'
+		except Exception as D:raise Exception('__readEvse_data error: {}'.format(D))
+	def balancEvseCurrent(A,ID):
+		J='in,BREAKER';G='I3';H='I2';I='I1';B=0;C=0;D=0;K=0;L=0;M=0;F=0
+		if A.wattmeter.dataLayer.data[I]>32767:K=A.wattmeter.dataLayer.data[I]-65535
+		else:B=A.wattmeter.dataLayer.data[I]
+		if A.wattmeter.dataLayer.data[H]>32767:L=A.wattmeter.dataLayer.data[H]-65535
+		else:C=A.wattmeter.dataLayer.data[H]
+		if A.wattmeter.dataLayer.data[G]>32767:M=A.wattmeter.dataLayer.data[G]-65535
+		else:D=A.wattmeter.dataLayer.data[G]
+		if B>C and B>D:F=int(B/100)
+		if C>B and C>D:F=int(C/100)
+		if D>B and D>C:F=int(D/100)
+		E=int(A.setting.config[J])-F;print(A.setting.config[J]);A.__cntCurrent=A.__cntCurrent+1
+		if A.__cntCurrent>=3:
+			if int(A.dataLayer.data[_C][ID])!=3:
+				if E<0:A.__requestCurrent=0
+				elif A.__regulationDelay>0:A.__requestCurrent=0
+				else:A.__requestCurrent=6
+			elif E<0:
+				if A.__requestCurrent+E<0:A.__requestCurrent=0
+				else:
+					if A.__requestCurrent+E<6:A.__regulationDelay=1
+					A.__requestCurrent=A.__requestCurrent+E;A.regulationLock1=_A;A.lock1Counter=1
+			elif A.regulationLock1!=_A:A.__requestCurrent=A.__requestCurrent+1
+			A.__cntCurrent=0
+		if A.lock1Counter>=30:A.lock1Counter=0;A.regulationLock1=_G
+		if A.regulationLock1==_A or A.lock1Counter>0:A.lock1Counter=A.lock1Counter+1
+		if A.__regulationDelay>0:A.__regulationDelay=A.__regulationDelay+1
+		if A.__regulationDelay>60:A.__regulationDelay=0
+		if A.__requestCurrent>int(A.setting.config[_E.format(ID+1)]):A.__requestCurrent=int(A.setting.config[_E.format(ID+1)])
+		return A.__requestCurrent
 class DataLayer:
-    def __init__(self):
-        self.data = {}
-        self.data["ACTUAL_CONFIG_CURRENT"] = []
-        self.data["ACTUAL_OUTPUT_CURRENT"] = []
-        self.data["EV_STATE"] = []
-        self.data["NUMBER_OF_EVSE"] = 0
+	def __init__(A):A.data={};A.data[_B]=[];A.data[_F]=[];A.data[_C]=[];A.data[_D]=0

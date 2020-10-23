@@ -1,1 +1,59 @@
-import picowebimport wifiManagerfrom machine import reset,RTCfrom time import timeimport jsonfrom gc import collect,mem_freefrom asyn import sleep,cancellable,StopTaskimport uasyncio as asyncioclass WebServerApp:          def __init__(self,wlan,wattmeter,evse):        self.wifiManager = wlan        self.ipAddress = self.wifiManager.getIp()        self.wattmeter = wattmeter        self.evse = evse        self.port = 8000        self.ROUTES = [             ("/", self.main),             ("/datatable", self.dataTable),            ("/overview", self.overView),            ("/updateWificlient",self.updateWificlient),             ("/updateSetting",self.updateSetting),            ("/updateData", self.updateData),             ("/settings", self.settings),            ("/powerChart", self.powerChart),            ("/energyChart", self.energyChart),            ("/getEspID", self.getEspID)           # ("/readRegister", self.readRegister)        ]        self.app = picoweb.WebApp(None, self.ROUTES)        def main(self,req, resp):        collect()        mem_free()        yield from picoweb.start_response(resp)        yield from self.app.render_template(resp,"main.html")        def overView(self,req, resp):        collect()        mem_free()        yield from picoweb.start_response(resp)        collect()        mem_free()        yield from self.app.render_template(resp,"overview.html")    def settings(self,req, resp):        collect()        mem_free()        yield from picoweb.start_response(resp)        yield from self.app.render_template(resp, "settings.html", (req,))            def powerChart(self,req, resp):        collect()        mem_free()        yield from picoweb.start_response(resp)        yield from self.app.render_template(resp, "powerChart.html", (req,))            def energyChart(self,req, resp):        collect()        mem_free()        yield from picoweb.start_response(resp)        yield from self.app.render_template(resp, "energyChart.html", (req,))            def updateData(self,req, resp):        collect()        mem_free()         if req.method == "POST":            datalayer = {}            req = await  self.proccessMsg(req)            for i in req.form:                i = json.loads(i)                if(list(i.keys())[0] == 'relay'):                    if(self.wattmeter.negotiationRelay()):                        datalayer = {"process":1}                    else:                        datalayer = {"process":0}                elif(list(i.keys())[0] == 'time'):                    rtc=RTC()                    rtc.datetime((int(i["time"][2]), int(i["time"][1]), int(i["time"][0]), 0, int(i["time"][3]), int(i["time"][4]), int(i["time"][5]), 0))                               self.wattmeter.startUpTime = time()                    self.wattmeter.timeInit = True                    datalayer = {"process":"OK"}            yield from picoweb.jsonify(resp,datalayer)                        else:            datalayer = self.wattmeter.dataLayer.data            datalayer.update(self.evse.dataLayer.data)                 yield from picoweb.jsonify(resp,datalayer)                def updateWificlient(self,req, resp):        collect()        mem_free()         if req.method == "POST":            datalayer = {}            req = await  self.proccessMsg(req)            for i in req.form:                 i = json.loads(i)                print(i)                datalayer = await self.wifiManager.handle_configure(i["ssid"],i["password"])                self.ipAddress=self.wifiManager.getIp()                datalayer = {"process":datalayer,"ip":self.ipAddress}            yield from picoweb.jsonify(resp,datalayer)                        else:            datalayer = self.wifiManager.getSSID()            datalayer["connectSSID"] = self.wifiManager.getCurrentConnectSSID()            yield from picoweb.jsonify(resp,datalayer)    '''           def readRegister(self,req, resp):        if req.method == "POST":            datalayer = {}            req =  await self.proccessMsg(req)            for i in req.form:                 i = json.loads(i)                 register = int(i["register"])                data = await self.wattmeter.readWattmeterRegister(register,1)                datalayer = {"data":data}                        yield from picoweb.jsonify(resp,datalayer)        '''                               #Funkce pro vycitani a ukladani nastaveni    def updateSetting(self,req, resp):        collect()        mem_free()         from main import __config__        setting = __config__.Config()                if req.method == "POST":            datalayer = {}            req = await self.proccessMsg(req)                        for i in req.form:                 i = json.loads(i)                if(i['variable'] == 'bt,RESET WATTMETER'):                    reset()                                    datalayer = setting.handle_configure(i["variable"],i["value"])                datalayer = {"process":datalayer}                        yield from picoweb.jsonify(resp,datalayer)                        else:            datalayer = setting.getConfig()            yield from picoweb.jsonify(resp,datalayer)                    def dataTable(self,req, resp):        collect()        mem_free()        yield from picoweb.start_response(resp)        yield from self.app.render_template(resp, "datatable.html", (req,))    def getEspID(self,req,resp):        from main import __config__        setting = __config__.Config()        datalayer = {"ID":" Wattmeter: {}".format(setting.getConfig()['ID']), "IP":self.wifiManager.getIp()}        yield from picoweb.jsonify(resp,datalayer)                     def proccessMsg(self,req):        size = int(req.headers[b"Content-Length"])        qs = yield from req.reader.read(size)        req.qs = qs.decode()        req.parse_qs()        return req            @cancellable    async def webServerRun(self, delay, ip,n):        threadName= None        sock = None        try:            print("Start webserver App")             threadName = self.app.run(debug=True, host=ip,port=self.port,name=n)            while True:                await sleep(delay)                        except StopTask:            if n=='app2':                asyncio.StreamWriter(asyncio.activeSock['app2'],'').aclose()                asyncio.StreamReader(asyncio.activeSock['app2']).aclose()                asyncio.cancel(threadName)                asyncio.activeSock['app2'].close()            elif n=='app1':                asyncio.StreamWriter(asyncio.activeSock['app1'],'').aclose()                asyncio.StreamReader(asyncio.activeSock['app1']).aclose()                asyncio.cancel(threadName)                asyncio.activeSock['app1'].close()
+_D=True
+_C='POST'
+_B=None
+_A='process'
+import picoweb,wifiManager
+from machine import reset,RTC
+from time import time
+import json
+from gc import collect,mem_free
+from asyn import sleep,cancellable,StopTask,Event
+import uasyncio as asyncio
+class WebServerApp:
+	def __init__(A,wlan,wattmeter,evse):A.wifiManager=wlan;A.ipAddress=A.wifiManager.getIp();A.wattmeter=wattmeter;A.evse=evse;A.port=8000;A.ROUTES=[('/',A.main),('/datatable',A.dataTable),('/overview',A.overView),('/updateWificlient',A.updateWificlient),('/updateSetting',A.updateSetting),('/updateData',A.updateData),('/settings',A.settings),('/powerChart',A.powerChart),('/energyChart',A.energyChart),('/getEspID',A.getEspID)];A.app=picoweb.WebApp(_B,A.ROUTES)
+	def main(A,req,resp):collect();mem_free();yield from picoweb.start_response(resp);yield from A.app.render_template(resp,'main.html')
+	def overView(A,req,resp):collect();mem_free();yield from picoweb.start_response(resp);collect();mem_free();yield from A.app.render_template(resp,'overview.html')
+	def settings(A,req,resp):collect();mem_free();yield from picoweb.start_response(resp);yield from A.app.render_template(resp,'settings.html',(req,))
+	def powerChart(A,req,resp):collect();mem_free();yield from picoweb.start_response(resp);yield from A.app.render_template(resp,'powerChart.html',(req,))
+	def energyChart(A,req,resp):collect();mem_free();yield from picoweb.start_response(resp);yield from A.app.render_template(resp,'energyChart.html',(req,))
+	def updateData(C,req,resp):
+		E=req;D='time';collect();mem_free()
+		if E.method==_C:
+			B={};E=await C.proccessMsg(E)
+			for A in E.form:
+				A=json.loads(A)
+				if list(A.keys())[0]=='relay':
+					if C.wattmeter.negotiationRelay():B={_A:1}
+					else:B={_A:0}
+				elif list(A.keys())[0]==D:F=RTC();F.datetime((int(A[D][2]),int(A[D][1]),int(A[D][0]),0,int(A[D][3]),int(A[D][4]),int(A[D][5]),0));C.wattmeter.startUpTime=time();C.wattmeter.timeInit=_D;B={_A:'OK'}
+			yield from picoweb.jsonify(resp,B)
+		else:B=C.wattmeter.dataLayer.data;B.update(C.evse.dataLayer.data);yield from picoweb.jsonify(resp,B)
+	def updateWificlient(A,req,resp):
+		D=req;collect();mem_free()
+		if D.method==_C:
+			B={};D=await A.proccessMsg(D)
+			for C in D.form:C=json.loads(C);print(C);B=await A.wifiManager.handle_configure(C['ssid'],C['password']);A.ipAddress=A.wifiManager.getIp();B={_A:B,'ip':A.ipAddress}
+			yield from picoweb.jsonify(resp,B)
+		else:B=A.wifiManager.getSSID();B['connectSSID']=A.wifiManager.getCurrentConnectSSID();yield from picoweb.jsonify(resp,B)
+	def updateSetting(E,req,resp):
+		F='variable';C=req;collect();mem_free();from main import __config__;D=__config__.Config()
+		if C.method==_C:
+			A={};C=await E.proccessMsg(C)
+			for B in C.form:
+				B=json.loads(B)
+				if B[F]=='bt,RESET WATTMETER':reset()
+				A=D.handle_configure(B[F],B['value']);A={_A:A}
+			yield from picoweb.jsonify(resp,A)
+		else:A=D.getConfig();yield from picoweb.jsonify(resp,A)
+	def dataTable(A,req,resp):collect();mem_free();yield from picoweb.start_response(resp);yield from A.app.render_template(resp,'datatable.html',(req,))
+	def getEspID(A,req,resp):D='ID';from main import __config__;B=__config__.Config();C={D:' Wattmeter: {}'.format(B.getConfig()[D]),'IP':A.wifiManager.getIp()};yield from picoweb.jsonify(resp,C)
+	def proccessMsg(D,req):A=req;B=int(A.headers[b'Content-Length']);C=yield from A.reader.read(B);A.qs=C.decode();A.parse_qs();return A
+	@cancellable
+	async def webServerRun(self,delay,ip,n):
+		C='app1';B='app2';A=_B;D=_B
+		try:
+			print('Start webserver App');A=self.app.run(debug=_D,host=ip,port=self.port,name=n)
+			while _D:await sleep(delay)
+		except StopTask:
+			if n==B:asyncio.StreamWriter(asyncio.activeSock[B],'').aclose();asyncio.StreamReader(asyncio.activeSock[B]).aclose();asyncio.cancel(A);asyncio.activeSock[B].close()
+			elif n==C:asyncio.StreamWriter(asyncio.activeSock[C],'').aclose();asyncio.StreamReader(asyncio.activeSock[C]).aclose();asyncio.cancel(A);asyncio.activeSock[C].close()
