@@ -44,7 +44,7 @@ class TaskHandler:
         self.ap.irq(trigger=Pin.IRQ_FALLING, handler=self.callback)
         self.lockPin = 0
         self.tryOfConnections = 0
-        lambda:  self.wifiManager.turnONAp() if setting['sw,ACCESS POINT'] == '1' else False
+        self.wifiManager.turnONAp()#povolit Access point
         self.tasksList = {'systemHandler':[self.systemHandler,10],
                                       'timeHandler':[self.timeHandler,6000],
                                       'wifiHandler':[self.wifiHandler,20],
@@ -60,12 +60,6 @@ class TaskHandler:
                 
     def pinFilter(self):
         setting = self.setting.getConfig()
-        if setting['sw,ACCESS POINT'] == '1':
-            self.setting.handle_configure('sw,ACCESS POINT','0')
-            self.wifiManager.turnOffAp()
-        else:
-            self.setting.handle_configure('sw,ACCESS POINT','1')
-            self.wifiManager.turnONAp()
         self.lockPin = 0
         
     def memFree(self):
@@ -179,25 +173,15 @@ class TaskHandler:
             
         
     async def localWebserverHandler(self):
-        setting = self.setting.getConfig()
-        if setting['sw,ACCESS POINT'] == '1':
-            self.ledWifiHandler.addState(AP)
-            if((NamedTask.is_running('app1')) == False):
+        if((NamedTask.is_running('app1')) == False):
+                self.ledWifiHandler.addState(AP)
                 loop = asyncio.get_event_loop()
                 loop.create_task(NamedTask('app1',self.webServerApp.webServerRun,1,'192.168.4.1','app1')())
-        else:                
-            try:
-                if(((NamedTask.is_running('app1')) == True)):
-                    res = await NamedTask.cancel('app1')
-                    self.ledWifiHandler.removeState(AP)
-                    if res: 
-                        print('app1 will be cancelled when next scheduled')
-                    else:
-                        print('app1 was not cancellable.')                              
-                    self.ledErrorHandler.removeState(WEBSERVER_CANCELATION_ERR)
-            except Exception as e:
-                self.ledErrorHandler.addState(WEBSERVER_CANCELATION_ERR)
-                print("Error during cancelation: {}".format(e))
+        
+        if((NamedTask.is_running('app1')) == True):
+            self.ledWifiHandler.addState(AP)
+        else:
+            self.ledWifiHandler.removeState(AP)
         self.memFree()         
             
     def mainTaskHandlerRun(self):
@@ -206,5 +190,6 @@ class TaskHandler:
         loop.create_task(self.routineHandler())
         loop.create_task(self.wattmeterHandler())
         loop.create_task(self.evseHandler())
+        loop.create_task(NamedTask('app1',self.webServerApp.webServerRun,1,'192.168.4.1','app1')())
         loop.create_task(self.uModBusTCP.run(loop))
         loop.run_forever()

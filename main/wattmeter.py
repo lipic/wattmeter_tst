@@ -17,6 +17,8 @@ class Wattmeter:
         self.lastMinute =  0
         self.lastHour = 0
         self.lastDay =  0
+        self.lastMounth = 0
+        self.lastYear = 0
         self.test = 0
         self.startUpTime = 0
         self.dataLayer.data['ID'] =__config__.Config().getConfig()['ID'] 
@@ -27,6 +29,8 @@ class Wattmeter:
             self.startUpTime = time.time()
             self.lastMinute =  int(time.localtime()[4])
             self.lastDay =  int(time.localtime()[2])
+            self.lastMounth = int(time.localtime()[1])
+            self.lastYear =  int(time.localtime()[0])
             self.dataLayer.data['DailyEnergy'] = self.fileHandler.readData(self.DAILY_CONSUMPTION)
             self.timeOfset = True
             
@@ -88,14 +92,20 @@ class Wattmeter:
                 self.dataLayer.data["E_hour"][72]= self.dataLayer.data["EhourN"]
         
         if((self.lastDay is not int(time.localtime()[2]))and self.timeInit and self.timeOfset):
-            curentYear = str(time.localtime()[0])[-2:] 
-            data = {("{0:02}/{1:02}/{2}".format(time.localtime()[1],self.lastDay ,curentYear)) : [self.dataLayer.data["E1dP"] + self.dataLayer.data["E2dP"]+self.dataLayer.data["E3dP"], self.dataLayer.data["E1dN"] + self.dataLayer.data["E2dN"]+self.dataLayer.data["E3dN"]]}
+            curentYear = str(self.lastYear)[-2:] 
+            data = {("{0:02}/{1:02}/{2}".format(self.lastMounth,self.lastDay ,curentYear)) : [self.dataLayer.data["E1dP"] + self.dataLayer.data["E2dP"]+self.dataLayer.data["E3dP"], self.dataLayer.data["E1dN"] + self.dataLayer.data["E2dN"]+self.dataLayer.data["E3dN"]]}
             async with self.wattmeterInterface as w:
                 await w.writeWattmeterRegister(102,[1])
             self.lastDay = int(time.localtime()[2])
             self.fileHandler.handleData(self.DAILY_CONSUMPTION)
             self.fileHandler.writeData(self.DAILY_CONSUMPTION, data)
             self.dataLayer.data["DailyEnergy"] = self.fileHandler.readData(self.DAILY_CONSUMPTION) 
+        
+        if((self.lastMounth is not int(time.localtime()[1]))and self.timeInit and self.timeOfset):
+            self.lastMounth = int(time.localtime()[1])
+        
+        if((self.lastYear is not int(time.localtime()[0]))and self.timeInit and self.timeOfset):
+            self.lastYear = int(time.localtime()[0])
     
     async def __readWattmeter_data(self,reg,length):
         async with self.wattmeterInterface as w:
