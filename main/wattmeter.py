@@ -266,7 +266,7 @@ class DataLayer:
         self.data["S3"] = 0
         self.data["AC_IN"] = 0
         self.data["P_minuten"] = [0]
-        self.data["E_hour"] = []
+        self.data["E_hour"] = [0]
         self.data['DailyEnergy'] = None
         self.data["E1dP"] = 0
         self.data["E2dP"] = 0
