@@ -71,25 +71,29 @@ class Wattmeter:
                 async with self.wattmeterInterface as w:
                     await w.writeWattmeterRegister(101,[1])
                 self.lastHour = int(time.localtime()[3])
-                if(len(self.dataLayer.data["E_hour"])<73):
+                if(len(self.dataLayer.data["E_hour"])<97):
                     self.dataLayer.data["E_hour"].append(self.lastHour)
                     self.dataLayer.data["E_hour"].append(self.dataLayer.data["EhourP"])
                     self.dataLayer.data["E_hour"].append(self.dataLayer.data["EhourN"])
+                    self.dataLayer.data["E_hour"].append(self.dataLayer.data["AC_IN"])
                 else:
                     self.dataLayer.data["E_hour"] = self.dataLayer.data["E_hour"][3:]
                     self.dataLayer.data["E_hour"].append(self.lastHour)
                     self.dataLayer.data["E_hour"].append(self.dataLayer.data["EhourP"])
                     self.dataLayer.data["E_hour"].append(self.dataLayer.data["EhourN"])
+                    self.dataLayer.data["E_hour"].append(self.dataLayer.data["AC_IN"])
             
                 self.dataLayer.data["E_hour"][0] = len(self.dataLayer.data["E_hour"])
             
-        else:  
-            if(len(self.dataLayer.data["E_hour"])<73):
-                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-2]= self.dataLayer.data["EhourP"]
-                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-1]= self.dataLayer.data["EhourN"]
             else:
-                self.dataLayer.data["E_hour"][71]= self.dataLayer.data["EhourP"]
-                self.dataLayer.data["E_hour"][72]= self.dataLayer.data["EhourN"]
+                if(len(self.dataLayer.data["E_hour"])<97):
+                    self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-3]= self.dataLayer.data["EhourP"]
+                    self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-2]= self.dataLayer.data["EhourN"]
+                    self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-1]=  self.dataLayer.data["AC_IN"]
+                else:
+                    self.dataLayer.data["E_hour"][94]= self.dataLayer.data["EhourP"]
+                    self.dataLayer.data["E_hour"][95]= self.dataLayer.data["EhourN"]
+                    self.dataLayer.data["E_hour"][96]=  self.dataLayer.data["AC_IN"]
         
         if((self.lastDay is not int(time.localtime()[2]))and self.timeInit and self.timeOfset):
             curentYear = str(self.lastYear)[-2:] 
@@ -190,7 +194,7 @@ class Wattmeter:
                 self.dataLayer.data["EpDN"] =     (int)((((receiveData[6])) << 8)  | ((receiveData[7]))) + (int)((((receiveData[8])) << 8)  | ((receiveData[9]))) + (int)((((receiveData[10])) << 8)  | ((receiveData[11])))
                 return "SUCCESS_READ"
 
-            else:  
+            else:   
                 return "Timed out waiting for result."
             
         except Exception as e:
@@ -208,7 +212,22 @@ class Wattmeter:
         
     def controlRelay(self):
         config = __config__.Config()
-        if((config.getConfig()['sw,WHEN AC IN: RELAY ON']) == '1'):
+        if((config.getConfig()['sw,WHEN OVERFLOW: RELAY ON']) == '1'):
+            I1_N = 0
+            I2_N = 0
+            I3_N = 0 
+            maxCurrent = 0
+            if (self.dataLayer.data["I1"] > 32767):
+                I1_N = (self.dataLayer.data["I1"] - 65535)/100
+            if (self.dataLayer.data["I2"] > 32767):
+                I2_N = (self.dataLayer.data["I2"] - 65535)/100
+            if (self.dataLayer.data["I3"] > 32767):
+                I3_N = (self.dataLayer.data["I3"] - 65535)/100
+            if((I1_N>0)or(I2_N>0)or(I3_N>0)):
+                self.relay.on()
+            else:
+                self.relay.off()       
+        elif((config.getConfig()['sw,WHEN AC IN: RELAY ON']) == '1'):
             if(self.dataLayer.data["AC_IN"] == 1):
                 self.relay.on()
             else:

@@ -17,8 +17,11 @@ class Config:
         self.config['in,EVSE-NUMBER']='0'                   #Reg 1006
         self.config['sw,ENABLE BALANCING']='0'     #Reg 1007
         self.config['sw,WHEN AC IN: RELAY ON']='0' #Reg 1008
+        self.config['sw,WHEN OVERFLOW: RELAY ON']='0' #Reg 1008
+        self.config['sw,WHEN AC IN: CHARGING']='0' #Reg 1008
         self.config['sw,AC IN ACTIVE: HIGH']='0'
         self.config['sw,TESTING SOFTWARE']='0'      #Reg 1009sw,AC IN ACTIVE: HIGH
+        self.config['ERRORS'] = '0'                                            #Reg 1010
         self.config['ID'] = '0'                                            #Reg 1010
         self.config['inp,EVSE1']='6'                                     #Reg 1011
         self.config['inp,EVSE2']='6'                                      #Reg 1011

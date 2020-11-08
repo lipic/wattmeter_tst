@@ -37,12 +37,13 @@ class TaskHandler:
         self.wdt = WDT(timeout=60000) 
         self.setting = __config__.Config()
         self.wifiManager = wifi
-        self.ledErrorHandler = ledHandler.ledHandler(21,1,3,40)
-        self.ledWifiHandler =  ledHandler.ledHandler(22,1,3,20) # set pin high on creation
+        self.ledErrorHandler = ledHandler.ledHandler(21,1,2,40)
+        self.ledWifiHandler =  ledHandler.ledHandler(22,1,2,20) # set pin high on creation
         self.ledRun  = Pin(23, Pin.OUT) # set pin high on creation
         self.ap = Pin(5, Pin.IN, Pin.PULL_UP)
         self.ap.irq(trigger=Pin.IRQ_FALLING, handler=self.callback)
         self.lockPin = 0
+        self.errors = 0
         self.tryOfConnections = 0
         self.wifiManager.turnONAp()#povolit Access point
         self.tasksList = {'systemHandler':[self.systemHandler,10],
@@ -68,7 +69,7 @@ class TaskHandler:
      #Handler for time
         
     async def routineHandler(self):
-        pol = pool.Pool(5)
+        pol = pool.Pool(10)
         counter100ms = 0
         while True:
             for i in self.tasksList:
@@ -86,8 +87,10 @@ class TaskHandler:
             try:
                 status = await self.evse.evseHandler()
                 self.ledErrorHandler.removeState(EVSE_ERR)
+                self.errors &= ~EVSE_ERR
             except Exception as e:
                 self.ledErrorHandler.addState(EVSE_ERR)
+                self.errors |= EVSE_ERR
             self.memFree()
             await asyncio.sleep(1)
                   
@@ -97,13 +100,17 @@ class TaskHandler:
             try:
                 status = await self.wattmeter.wattmeterHandler()
                 self.ledErrorHandler.removeState(WATTMETER_ERR)
+                self.errors &= ~WATTMETER_ERR
             except Exception as e:
+                print(e)
                 self.ledErrorHandler.addState(WATTMETER_ERR)
+                self.errors |= WATTMETER_ERR
             self.memFree()
             await asyncio.sleep(1)
 
     #Handler for time
     async def systemHandler(self):
+        self.setting.config['ERROR'] = (str)(self.errors)
         self.wdt.feed()#WDG Handler 
         if(self.ledRun.value()):
             self.ledRun.off()
@@ -123,8 +130,10 @@ class TaskHandler:
                 rtc.datetime((year, month, mday, 0, hour, minute, second, 0))
                 self.wattmeter.timeInit = True
                 self.ledErrorHandler.removeState(TIME_SYNC_ERR)
+                self.errors &= ~TIME_SYNC_ERR
             except Exception as e:
                 self.ledErrorHandler.addState(TIME_SYNC_ERR)
+                self.errors |= TIME_SYNC_ERR
                 print("Error during time setting: {}".format(e))        
 
             self.memFree()
@@ -154,8 +163,10 @@ class TaskHandler:
                             else:
                                 print('app2 was not cancellable.')                              
                         self.ledErrorHandler.removeState(WEBSERVER_CANCELATION_ERR)
+                        self.errors &= ~WEBSERVER_CANCELATION_ERR
                     except Exception as e:
                         self.ledErrorHandler.addState(WEBSERVER_CANCELATION_ERR)
+                        self.errors |= WEBSERVER_CANCELATION_ERR
                         print("Error during cancelation: {}".format(e))
                             
                     if(self.tryOfConnections > 30):
@@ -165,8 +176,10 @@ class TaskHandler:
                             self.settingAfterNewConnection = False
                     self.tryOfConnections = self.tryOfConnections + 1
             self.ledErrorHandler.removeState(WIFI_HANDLER_ERR)
+            self.errors &= ~WIFI_HANDLER_ERR
         except Exception as e:
             self.ledErrorHandler.addState(WIFI_HANDLER_ERR)
+            self.errors |= WIFI_HANDLER_ERR
             print("wifiHandler exception : {}".format(e))
         self.memFree()
             

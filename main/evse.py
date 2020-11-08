@@ -27,16 +27,29 @@ class Evse():
             try:
                 status = await self.__readEvse_data(1000,3,ID=(i+1))
                 if((status == 'SUCCESS_READ') == True):
-                    #If get max current accordig to wattmeter
                     if(setting["sw,ENABLE CHARGING"] == '1'):
-                        if (setting["sw,ENABLE BALANCING"] == '1'):
-                            current = self.balancEvseCurrent(i)
-                            async with self.evseInterface as e:
-                                await e.writeEvseRegister(1000,[current],i+1)
+                        if(setting["sw,WHEN AC IN: CHARGING"] == '1'):
+                            if self.wattmeter.dataLayer.data["AC_IN"] == 1:
+                                if (setting["sw,ENABLE BALANCING"] == '1'):
+                                    current = self.balancEvseCurrent(i)
+                                    async with self.evseInterface as e:
+                                        await e.writeEvseRegister(1000,[current],i+1)
+                                else:
+                                    current = int(setting["inp,EVSE{}".format(i+1)])
+                                    async with self.evseInterface as e:
+                                        await e.writeEvseRegister(1000,[current],i+1)
+                            else:
+                                async with self.evseInterface as e:
+                                    await e.writeEvseRegister(1000,[0],i+1)
                         else:
-                            current = int(setting["inp,EVSE{}".format(i+1)])
-                            async with self.evseInterface as e:
-                                await e.writeEvseRegister(1000,[current],i+1)
+                            if (setting["sw,ENABLE BALANCING"] == '1'):
+                                current = self.balancEvseCurrent(i)
+                                async with self.evseInterface as e:
+                                    await e.writeEvseRegister(1000,[current],i+1)
+                            else:
+                                current = int(setting["inp,EVSE{}".format(i+1)])
+                                async with self.evseInterface as e:
+                                    await e.writeEvseRegister(1000,[current],i+1)
                     else: 
                         async with self.evseInterface as e:
                             await e.writeEvseRegister(1000,[0],i+1)
@@ -77,17 +90,17 @@ class Evse():
         I3_N = 0
         maxCurrent = 0
         if (self.wattmeter.dataLayer.data["I1"] > 32767):
-            I1_N = self.wattmeter.dataLayer.data["I1"] - 65535
+            I1_N = (self.wattmeter.dataLayer.data["I1"] - 65535)/100
         else:
             I1_P = self.wattmeter.dataLayer.data["I1"]
 
         if (self.wattmeter.dataLayer.data["I2"] > 32767):
-            I2_N = self.wattmeter.dataLayer.data["I2"] - 65535
+            I2_N = (self.wattmeter.dataLayer.data["I2"] - 65535)/100
         else:
             I2_P = self.wattmeter.dataLayer.data["I2"]
             
         if (self.wattmeter.dataLayer.data["I3"] > 32767):
-            I3_N = self.wattmeter.dataLayer.data["I3"] - 65535
+            I3_N = (self.wattmeter.dataLayer.data["I3"] - 65535)/100
         else:
             I3_P = self.wattmeter.dataLayer.data["I3"]
 
@@ -99,6 +112,7 @@ class Evse():
             
         if((I3_P > I1_P)and(I3_P > I2_P)):
             maxCurrent = int(I3_P/100)
+                                
             
         delta = int(self.setting.config["in,BREAKER"]) - maxCurrent
         # Kdyz je proud vetsi nez dvojnasobek proudu jsitice okamzite vypni a pak pockej 10s
