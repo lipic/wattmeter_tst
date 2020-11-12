@@ -85,15 +85,15 @@ class Wattmeter:
             
                 self.dataLayer.data["E_hour"][0] = len(self.dataLayer.data["E_hour"])
             
+        else:
+            if(len(self.dataLayer.data["E_hour"])<97):
+                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-3]= self.dataLayer.data["EhourP"]
+                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-2]= self.dataLayer.data["EhourN"]
+                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-1]=  self.dataLayer.data["AC_IN"]
             else:
-                if(len(self.dataLayer.data["E_hour"])<97):
-                    self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-3]= self.dataLayer.data["EhourP"]
-                    self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-2]= self.dataLayer.data["EhourN"]
-                    self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-1]=  self.dataLayer.data["AC_IN"]
-                else:
-                    self.dataLayer.data["E_hour"][94]= self.dataLayer.data["EhourP"]
-                    self.dataLayer.data["E_hour"][95]= self.dataLayer.data["EhourN"]
-                    self.dataLayer.data["E_hour"][96]=  self.dataLayer.data["AC_IN"]
+                self.dataLayer.data["E_hour"][94]= self.dataLayer.data["EhourP"]
+                self.dataLayer.data["E_hour"][95]= self.dataLayer.data["EhourN"]
+                self.dataLayer.data["E_hour"][96]=  self.dataLayer.data["AC_IN"]
         
         if((self.lastDay is not int(time.localtime()[2]))and self.timeInit and self.timeOfset):
             curentYear = str(self.lastYear)[-2:] 
