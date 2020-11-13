@@ -31,10 +31,10 @@ class Wattmeter:
             self.lastDay =  int(time.localtime()[2])
             self.lastMounth = int(time.localtime()[1])
             self.lastYear =  int(time.localtime()[0])
-            self.dataLayer.data['DailyEnergy'] = self.fileHandler.readData(self.DAILY_CONSUMPTION)
-            self.dataLayer.data["MonthlyEnergy"] = self.fileHandler.readData(self.MONTHLY_CONSUMPTION)
-            self.timeOfset = True 
-             
+            self.dataLayer.data['DailyEnergy'] = self.fileHandler.readData(self.DAILY_CONSUMPTION)  
+            self.dataLayer.data['MounthlyEnergy'] = self.fileHandler.readData(self.MONTHLY_CONSUMPTION) 
+            self.timeOfset = True
+            
         self.dataLayer.data['RUN_TIME'] = time.time() - self.startUpTime
         curentYear = str(time.localtime()[0])[-2:] 
         self.dataLayer.data['WATTMETER_TIME'] = ("{0:02}.{1:02}.{2}  {3:02}:{4:02}:{5:02}".format(time.localtime()[2],time.localtime()[1],curentYear,time.localtime()[3],time.localtime()[4],time.localtime()[5]))
@@ -53,8 +53,7 @@ class Wattmeter:
         #Total energy 
         status = await self.__readWattmeter_data(200,1)
         self.controlRelay()
-        #Check if time-sync puls must be send       
-        
+        #Check if time-sync puls must be send
         if((self.lastMinute is not int(time.localtime()[4]))and(self.timeInit == True)):
             
             if(len(self.dataLayer.data["P_minuten"])<61):
@@ -66,8 +65,7 @@ class Wattmeter:
             self.dataLayer.data["P_minuten"][0] = len(self.dataLayer.data["P_minuten"])
             async with self.wattmeterInterface as w:
                 await w.writeWattmeterRegister(100,[1])
-            self.lastMinute = int(time.localtime()[4])
-
+            self.lastMinute = int(time.localtime()[4]) 
             
         if self.timeInit:
             if(self.lastHour is not int(time.localtime()[3])):
@@ -87,25 +85,21 @@ class Wattmeter:
                     self.dataLayer.data["E_hour"].append(self.dataLayer.data["AC_IN"])
             
                 self.dataLayer.data["E_hour"][0] = len(self.dataLayer.data["E_hour"])
-<<<<<<< HEAD
             
-        else:
-=======
-                    
-         else:
->>>>>>> 581d0c318f59b33accc9cf0b98b0ae1190df3695
-            if(len(self.dataLayer.data["E_hour"])<97):
-                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-3]= self.dataLayer.data["EhourP"]
-                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-2]= self.dataLayer.data["EhourN"]
-                self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-1]=  self.dataLayer.data["AC_IN"]
             else:
-                self.dataLayer.data["E_hour"][94]= self.dataLayer.data["EhourP"]
-                self.dataLayer.data["E_hour"][95]= self.dataLayer.data["EhourN"]
-                self.dataLayer.data["E_hour"][96]=  self.dataLayer.data["AC_IN"]
+                if(len(self.dataLayer.data["E_hour"])<97):
+                    self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-3]= self.dataLayer.data["EhourP"]
+                    self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-2]= self.dataLayer.data["EhourN"]
+                    self.dataLayer.data["E_hour"][len(self.dataLayer.data["E_hour"])-1]=  self.dataLayer.data["AC_IN"]
+                else:
+                    self.dataLayer.data["E_hour"][94]= self.dataLayer.data["EhourP"]
+                    self.dataLayer.data["E_hour"][95]= self.dataLayer.data["EhourN"]
+                    self.dataLayer.data["E_hour"][96]=  self.dataLayer.data["AC_IN"]
         
         if((self.lastDay is not int(time.localtime()[2]))and self.timeInit and self.timeOfset):
             curentYear = str(self.lastYear)[-2:] 
             day = {("{0:02}/{1:02}/{2}".format(self.lastMounth,self.lastDay ,curentYear)) : [self.dataLayer.data["E1dP"] + self.dataLayer.data["E2dP"]+self.dataLayer.data["E3dP"], self.dataLayer.data["E1dN"] + self.dataLayer.data["E2dN"]+self.dataLayer.data["E3dN"]]}
+            mounth = {("{0:02}/{2}".format(self.lastMounth,curentYear)) : [100,200]}
             async with self.wattmeterInterface as w:
                 await w.writeWattmeterRegister(102,[1])
             self.lastDay = int(time.localtime()[2])
@@ -113,16 +107,16 @@ class Wattmeter:
             self.fileHandler.writeData(self.DAILY_CONSUMPTION, day)
             self.dataLayer.data["DailyEnergy"] = self.fileHandler.readData(self.DAILY_CONSUMPTION) 
         
-
+#TODO:
         if((self.lastMounth is not int(time.localtime()[1]))and self.timeInit and self.timeOfset):
-            curentYear = str(self.lastYear)[-2:] 
-            mounth = {("{0:02}/{2}".format(self.lastMounth,curentYear)) : [self.dataLayer.data["E1tP"]+self.dataLayer.data["E2tP"]+self.dataLayer.data["E3tP"],self.dataLayer.data["E1tN"]+self.dataLayer.data["E2tN"]+self.dataLayer.data["E3tN"]]}
-            async with self.wattmeterInterface as w:
+           curentYear = str(self.lastYear)[-2:] 
+           mounth = {("{0:02}/{2}".format(self.lastMounth,curentYear)) : [100,200]}
+           async with self.wattmeterInterface as w:
                 await w.writeWattmeterRegister(103,[1])
             self.lastMounth = int(time.localtime()[1])
             self.fileHandler.handleData(self.MONTHLY_CONSUMPTION)
             self.fileHandler.writeData(self.MONTHLY_CONSUMPTION, mounth)
-            self.dataLayer.data["MonthlyEnergy"] = self.fileHandler.readData(self.DAILY_CONSUMPTION) 
+            self.dataLayer.data["MounthlyEnergy"] = self.fileHandler.readData(self.DAILY_CONSUMPTION) 
         
         if((self.lastYear is not int(time.localtime()[0]))and self.timeInit and self.timeOfset):
             self.lastYear = int(time.localtime()[0])
@@ -284,7 +278,7 @@ class DataLayer:
         self.data["P_minuten"] = [0]
         self.data["E_hour"] = [0]
         self.data['DailyEnergy'] = None 
-        self.data['MonthlyEnergy'] = None 
+        self.data['MounthlyEnergy'] = None 
         self.data["E1dP"] = 0
         self.data["E2dP"] = 0
         self.data["E3dP"] = 0
@@ -310,6 +304,7 @@ class fileHandler:
             data = self.readData(file)
         except OSError:
             return
+        
         if((len(data)>30 and file=='daily_consumption.dat') or (len(data)>11 and file=='monthly_consumption.dat')):
             lines = []
             for i in data:
@@ -318,6 +313,8 @@ class fileHandler:
             with open(file, "w+") as f:
                 lines = lines[1:]
                 f.write(''.join(lines))
+                f.close()
+
         
     def readData(self,file):
 
@@ -334,6 +331,7 @@ class fileHandler:
     def writeData(self,file,data):
         lines = []
         for variable, value in data.items():
-            lines.append("%s:%s\n" % (variable, value))   
+            lines.append("%s:%s\n" % (variable, value))
+            
         with open(file, "a+") as f:
             f.write(''.join(lines))
