@@ -44,27 +44,27 @@ class Config:
         except OSError:
             setting = {}
             
-        if(len(setting) != len(self.config)):
+        if len(setting) != len(self.config):
             with open(self.SETTING_PROFILES, 'w') as filetowrite:
                 filetowrite.write('')
                 filetowrite.close()
                 
             for i in self.config: 
                 if i in setting:
-                    if (self.config[i] != setting[i]):
+                    if self.config[i] != setting[i]:
                         self.config[i] = setting[i]
             setting = {}
         
         for i in self.config: 
             if i in setting:
-                if (self.config[i] != setting[i]):
+                if self.config[i] != setting[i]:
                     self.config[i] = setting[i]   
             else:
                 setting[i] = self.config[i]
                 self.write_setting(setting)
         
-        if(self.config['ID'] == '0'):
-            self.config['ID'] = random.randrange(100, 999)*random.randrange(0, 90)+10000
+        if self.config['ID'] == '0':
+            self.config['ID'] = str(random.randrange(100, 999) * random.randrange(0, 90) + 10000)
             self.handle_configure('ID', self.config['ID'])
             
         return self.config
@@ -79,7 +79,7 @@ class Config:
                 except OSError:
                     setting = {}
                 
-                if(setting[variable] != value):
+                if setting[variable] != value:
                     setting[variable] = value
                     self.write_setting(setting)
                     self.getConfig()
@@ -90,7 +90,7 @@ class Config:
             print(e)
             
     def handleDifferentRequests(self,variable,value):
-        if(variable == 'bt,RESET WATTMETER'):
+        if variable == 'bt,RESET WATTMETER':
             from machine import reset
             reset()
 
