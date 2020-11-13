@@ -109,9 +109,9 @@ class Wattmeter:
         
 #TODO:
         if((self.lastMounth is not int(time.localtime()[1]))and self.timeInit and self.timeOfset):
-           curentYear = str(self.lastYear)[-2:] 
-           mounth = {("{0:02}/{2}".format(self.lastMounth,curentYear)) : [100,200]}
-           async with self.wattmeterInterface as w:
+            curentYear = str(self.lastYear)[-2:] 
+            mounth = {("{0:02}/{2}".format(self.lastMounth,curentYear)) : [100,200]}
+            async with self.wattmeterInterface as w:
                 await w.writeWattmeterRegister(103,[1])
             self.lastMounth = int(time.localtime()[1])
             self.fileHandler.handleData(self.MONTHLY_CONSUMPTION)
