@@ -26,14 +26,15 @@ function loadLibrary() {
         requireScript("evse", "0.0.0", "main/static/evse.js"),
         requireScript("gaugeSetting", "0.0.0", "main/static/gauge.js");
     } else {
+        var a = document.getElementsByTagName("head")[0],
+        n = document.createElement("script");
+        (n.type = "text/javascript"), (n.src = "main/static/func.js"), a.appendChild(n);
         requireScript("energyChart", "0.0.0", "main/static/energyChart.js"),
         requireScript("powerChart", "0.0.4", "main/static/powerChart.js"),
         requireScript("evse", "0.0.0", "main/static/evse.js"),
         requireScript("setting", "0.0.0", "main/static/setting.js"),
         requireScript("gaugeSetting", "0.0.0", "main/static/gauge.js");
-        var a = document.getElementsByTagName("head")[0],
-        n = document.createElement("script");
-        (n.type = "text/javascript"), (n.src = "main/static/func.js"), a.appendChild(n);
+
     }
 }
 var isMobile = {
