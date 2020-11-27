@@ -40,32 +40,17 @@ class TaskHandler:
         self.ledErrorHandler = ledHandler.ledHandler(21,1,2,40)
         self.ledWifiHandler =  ledHandler.ledHandler(22,1,2,20) # set pin high on creation
         self.ledRun  = Pin(23, Pin.OUT) # set pin high on creation
-        self.ap = Pin(5, Pin.IN, Pin.PULL_UP)
-        self.ap.irq(trigger=Pin.IRQ_FALLING, handler=self.callback)
-        self.lockPin = 0
         self.errors = 0
         self.tryOfConnections = 0
         self.wifiManager.turnONAp()#povolit Access point
-        self.tasksList = {'systemHandler':[self.systemHandler,10],
-                                      'timeHandler':[self.timeHandler,6000],
+        self.tasksList = {'timeHandler':[self.timeHandler,6000],
                                       'localWebserverHandler':[self.localWebserverHandler,20],
                                       'ledErrorHandler':[self.ledErrorHandler.ledHandler,1],
                                       'ledWifiHandler':[self.ledWifiHandler.ledHandler,1]}
      
-    def callback(self,pin):
-        if self.lockPin == 0:
-            self.lockPin = 1
-            loop = asyncio.get_event_loop()
-            loop.call_later(1,self.pinFilter)
-                
-    def pinFilter(self):
-        setting = self.setting.getConfig()
-        self.lockPin = 0
-        
     def memFree(self):
         collect()
         mem_free()
-     #Handler for time
         
     async def routineHandler(self):
         pol = pool.Pool(10)
@@ -101,7 +86,6 @@ class TaskHandler:
                 self.ledErrorHandler.removeState(WATTMETER_ERR)
                 self.errors &= ~WATTMETER_ERR
             except Exception as e:
-                print(e)
                 self.ledErrorHandler.addState(WATTMETER_ERR)
                 self.errors |= WATTMETER_ERR
             self.memFree()
@@ -109,13 +93,15 @@ class TaskHandler:
 
     #Handler for time
     async def systemHandler(self):
-        self.setting.config['ERROR'] = (str)(self.errors)
-        self.wdt.feed()#WDG Handler 
-        if(self.ledRun.value()):
-            self.ledRun.off()
-        else:
-            self.ledRun.on()
-        self.memFree()
+        while True:
+            self.setting.config['ERROR'] = (str)(self.errors)
+            self.wdt.feed()#WDG Handler 
+            if(self.ledRun.value()):
+                self.ledRun.off()
+            else:
+                self.ledRun.on()
+            self.memFree()
+            await asyncio.sleep(1)
     
     async def timeHandler(self):
         if self.wifiManager.isConnected():
@@ -204,6 +190,7 @@ class TaskHandler:
         loop.create_task(self.wattmeterHandler())
         loop.create_task(self.evseHandler())
         loop.create_task(self.wifiHandler())
+        loop.create_task(self.systemHandler())
         loop.create_task(NamedTask('app1',self.webServerApp.webServerRun,1,'192.168.4.1','app1')())
-        loop.create_task(self.uModBusTCP.run(loop))
+        loop.create_task(self.uModBusTCP.run(loop,True))
         loop.run_forever()
