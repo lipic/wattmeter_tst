@@ -22,7 +22,7 @@ function _injectScript(e, t, a, n, c) {
     var r = JSON.parse(e);
     if (r.version != n) return localStorage.removeItem(a), void _loadScript(t, a, n, c);
     var o = document.createElement("script");
-    o.type = "application/javascript";
+    o.type = "application/javascript"; 
     var i = document.createTextNode(r.content);
     o.appendChild(i), document.getElementsByTagName("head")[0].appendChild(o), c && c();
 }
