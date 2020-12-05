@@ -43,17 +43,18 @@ class TaskHandler:
         self.errors = 0
         self.tryOfConnections = 0
         self.wifiManager.turnONAp()#povolit Access point
-        self.tasksList = {'timeHandler':[self.timeHandler,6000],
+        self.tasksList = {'timeHandler':[self.timeHandler,100],
                                       'localWebserverHandler':[self.localWebserverHandler,20],
                                       'ledErrorHandler':[self.ledErrorHandler.ledHandler,1],
-                                      'ledWifiHandler':[self.ledWifiHandler.ledHandler,1]}
+                                      'ledWifiHandler':[self.ledWifiHandler.ledHandler,1],
+                                      'wifihandler':[self.wifiHandler,2]}
      
     def memFree(self):
         collect()
         mem_free()
         
     async def routineHandler(self):
-        pol = pool.Pool(10)
+        pol = pool.Pool(5)
         counter100ms = 0
         while True:
             for i in self.tasksList:
@@ -66,46 +67,10 @@ class TaskHandler:
                 counter100ms = 1
             await asyncio.sleep(0.1)
             
-    async def evseHandler(self):
-        while True:
-            try:
-                status = await self.evse.evseHandler()
-                self.ledErrorHandler.removeState(EVSE_ERR)
-                self.errors &= ~EVSE_ERR
-            except Exception as e:
-                self.ledErrorHandler.addState(EVSE_ERR)
-                self.errors |= EVSE_ERR
-            self.memFree()
-            await asyncio.sleep(1)
-                  
-         #Handler for wattmeter.        
-    async def wattmeterHandler(self):
-        while True:
-            try:
-                status = await self.wattmeter.wattmeterHandler()
-                self.ledErrorHandler.removeState(WATTMETER_ERR)
-                self.errors &= ~WATTMETER_ERR
-            except Exception as e:
-                self.ledErrorHandler.addState(WATTMETER_ERR)
-                self.errors |= WATTMETER_ERR
-            self.memFree()
-            await asyncio.sleep(1)
-
-    #Handler for time
-    async def systemHandler(self):
-        while True:
-            self.setting.config['ERROR'] = (str)(self.errors)
-            self.wdt.feed()#WDG Handler 
-            if(self.ledRun.value()):
-                self.ledRun.off()
-            else:
-                self.ledRun.on()
-            self.memFree()
-            await asyncio.sleep(1)
-    
     async def timeHandler(self):
-        if self.wifiManager.isConnected():
+        if self.wifiManager.isConnected() and self.wattmeter.timeInit == False:
             try:
+                print("Setting time")
                 settime()
                 rtc=RTC()
                 import utime
@@ -125,50 +90,48 @@ class TaskHandler:
             
   
     async def wifiHandler(self):
-        while True:
-            try:
-                if(self.wifiManager.isConnected() == True):
-                    self.ledWifiHandler.addState(WIFI)
-                    if(self.settingAfterNewConnection == False):
-                        self.settingAfterNewConnection = True
-                        ip = self.wifiManager.getIp()
-                        if((NamedTask.is_running('app2')) == False):
-                            loop = asyncio.get_event_loop()
-                            loop.create_task(NamedTask('app2',self.webServerApp.webServerRun,1,ip,'app2')())
-                        else:
-                            print("Webserver is running")
-                else:
-                    self.ledWifiHandler.removeState(WIFI)
-                    if (len(self.wifiManager.read_profiles())!= 0):
-                        try:
-                            if(((NamedTask.is_running('app2')) == True)):
-                                self.settingAfterNewConnection = False
-                                res = await NamedTask.cancel('app2')
-                                if res: 
-                                    print('app2 will be cancelled when next scheduled')
-                                else:
-                                    print('app2 was not cancellable.')                              
-                            self.ledErrorHandler.removeState(WEBSERVER_CANCELATION_ERR)
-                            self.errors &= ~WEBSERVER_CANCELATION_ERR
-                        except Exception as e:
-                            self.ledErrorHandler.addState(WEBSERVER_CANCELATION_ERR)
-                            self.errors |= WEBSERVER_CANCELATION_ERR
-                            print("Error during cancelation: {}".format(e))
+        try:
+            if(self.wifiManager.isConnected() == True):
+                self.ledWifiHandler.addState(WIFI)
+                if(self.settingAfterNewConnection == False):
+                    self.settingAfterNewConnection = True
+                    ip = self.wifiManager.getIp()
+                    if((NamedTask.is_running('app2')) == False):
+                        loop = asyncio.get_event_loop()
+                        loop.create_task(NamedTask('app2',self.webServerApp.webServerRun,1,ip,'app2')())
+                    else:
+                        print("Webserver is running")
+            else:
+                self.ledWifiHandler.removeState(WIFI)
+                if (len(self.wifiManager.read_profiles())!= 0):
+                    try:
+                        if(((NamedTask.is_running('app2')) == True)):
+                            self.settingAfterNewConnection = False
+                            res = await NamedTask.cancel('app2')
+                            if res: 
+                                print('app2 will be cancelled when next scheduled')
+                            else:
+                                print('app2 was not cancellable.')                              
+                        self.ledErrorHandler.removeState(WEBSERVER_CANCELATION_ERR)
+                        self.errors &= ~WEBSERVER_CANCELATION_ERR
+                    except Exception as e:
+                        self.ledErrorHandler.addState(WEBSERVER_CANCELATION_ERR)
+                        self.errors |= WEBSERVER_CANCELATION_ERR
+                        print("Error during cancelation: {}".format(e))
                             
-                        if(self.tryOfConnections > 30):
-                            self.tryOfConnections = 0
-                            result = await self.wifiManager.get_connection()
-                            if result:
-                                self.settingAfterNewConnection = False
-                        self.tryOfConnections = self.tryOfConnections + 1
-                self.ledErrorHandler.removeState(WIFI_HANDLER_ERR)
-                self.errors &= ~WIFI_HANDLER_ERR
-            except Exception as e:
-                self.ledErrorHandler.addState(WIFI_HANDLER_ERR)
-                self.errors |= WIFI_HANDLER_ERR
-                print("wifiHandler exception : {}".format(e))
-            self.memFree()
-            await asyncio.sleep(2)
+                    if(self.tryOfConnections > 30):
+                        self.tryOfConnections = 0
+                        result = await self.wifiManager.get_connection()
+                        if result:
+                            self.settingAfterNewConnection = False
+                    self.tryOfConnections = self.tryOfConnections + 1
+            self.ledErrorHandler.removeState(WIFI_HANDLER_ERR)
+            self.errors &= ~WIFI_HANDLER_ERR
+        except Exception as e:
+            self.ledErrorHandler.addState(WIFI_HANDLER_ERR)
+            self.errors |= WIFI_HANDLER_ERR
+            print("wifiHandler exception : {}".format(e))
+        self.memFree()
             
         
     async def localWebserverHandler(self):
@@ -183,13 +146,44 @@ class TaskHandler:
             self.ledWifiHandler.removeState(AP)
         self.memFree()         
             
+            
+    async def interfaceHandler(self):
+        while True:
+            try:
+                status = await self.evse.evseHandler()
+                self.ledErrorHandler.removeState(EVSE_ERR)
+                self.errors &= ~EVSE_ERR
+            except Exception as e:
+                self.ledErrorHandler.addState(EVSE_ERR)
+                self.errors |= EVSE_ERR
+            self.memFree()
+            try:
+                status = await self.wattmeter.wattmeterHandler()
+                self.ledErrorHandler.removeState(WATTMETER_ERR)
+                self.errors &= ~WATTMETER_ERR
+            except Exception as e:
+                self.ledErrorHandler.addState(WATTMETER_ERR)
+                self.errors |= WATTMETER_ERR
+            self.memFree()
+            await asyncio.sleep(1.5)
+
+    #Handler for time
+    async def systemHandler(self):
+        while True:
+            self.setting.config['ERROR'] = (str)(self.errors)
+            self.wdt.feed()#WDG Handler 
+            if(self.ledRun.value()):
+                self.ledRun.off()
+            else:
+                self.ledRun.on()
+            self.memFree()
+            await asyncio.sleep(1)
+            
     def mainTaskHandlerRun(self):
         #asyncio.core.DEB=1
         loop = asyncio.get_event_loop()
         loop.create_task(self.routineHandler())
-        loop.create_task(self.wattmeterHandler())
-        loop.create_task(self.evseHandler())
-        loop.create_task(self.wifiHandler())
+        loop.create_task(self.interfaceHandler())
         loop.create_task(self.systemHandler())
         loop.create_task(NamedTask('app1',self.webServerApp.webServerRun,1,'192.168.4.1','app1')())
         loop.create_task(self.uModBusTCP.run(loop,True))

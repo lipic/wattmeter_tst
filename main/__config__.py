@@ -1,6 +1,6 @@
 import bootloader
-import random
 from collections import OrderedDict
+import os
 
 class Config: 
     
@@ -64,7 +64,11 @@ class Config:
                 self.write_setting(setting)
         
         if self.config['ID'] == '0':
-            self.config['ID'] = str(random.randrange(100, 999) * random.randrange(0, 90) + 10000)
+            id = bytearray(os.urandom(4))
+            randId = ''
+            for i in range(0,len(id)):
+                randId+= str((int(id[i])))
+            self.config['ID'] = randId[-5:]
             self.handle_configure('ID', self.config['ID'])
             
         return self.config
@@ -116,3 +120,4 @@ class Config:
             lines.append("%s;%s\n" % (variable, value))
         with open(self.SETTING_PROFILES, "w") as f:
             f.write(''.join(lines))
+            
