@@ -3,7 +3,6 @@ import ledHandler
 import time
 import wattmeterComInterface
 import evseComInterface
-import modbusTcp
 from ntptime import settime
 from asyn import Lock,NamedTask,Event
 from gc import mem_free, collect
@@ -16,6 +15,8 @@ from main import evse
 from main import __config__
 import pool
 
+from main import modbusTcp
+
 EVSE_ERR = 1
 WATTMETER_ERR = 2
 WEBSERVER_CANCELATION_ERR = 4
@@ -27,8 +28,8 @@ WIFI = 2
 
 class TaskHandler:
     def __init__(self,wifi):
-        wattInterface = wattmeterComInterface.Interface(9600,lock = Lock())
-        evseInterface = evseComInterface.Interface(9600,lock = Lock())
+        wattInterface = wattmeterComInterface.Interface(9600,lock = Lock(200))
+        evseInterface = evseComInterface.Interface(9600,lock = Lock(200))
         self.wattmeter = wattmeter.Wattmeter(wattInterface) #Create instance of Wattmeter
         self.evse = evse.Evse(self.wattmeter,evseInterface)
         self.webServerApp = webServerApp.WebServerApp(wifi,self.wattmeter, self.evse) #Create instance of Webserver App
@@ -186,5 +187,5 @@ class TaskHandler:
         loop.create_task(self.interfaceHandler())
         loop.create_task(self.systemHandler())
         loop.create_task(NamedTask('app1',self.webServerApp.webServerRun,1,'192.168.4.1','app1')())
-        loop.create_task(self.uModBusTCP.run(loop,True))
+        loop.create_task(self.uModBusTCP.run(debug=True))
         loop.run_forever()
