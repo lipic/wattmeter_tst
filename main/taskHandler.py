@@ -35,7 +35,7 @@ class TaskHandler:
         self.webServerApp = webServerApp.WebServerApp(wifi,self.wattmeter, self.evse) #Create instance of Webserver App
         self.uModBusTCP = modbusTcp.Server(wattInterface,evseInterface)
         self.settingAfterNewConnection = False
-        self.wdt = WDT(timeout=60000) 
+        #self.wdt = WDT(timeout=60000) 
         self.setting = __config__.Config()
         self.wifiManager = wifi
         self.ledErrorHandler = ledHandler.ledHandler(21,1,2,40)
@@ -172,7 +172,7 @@ class TaskHandler:
     async def systemHandler(self):
         while True:
             self.setting.config['ERROR'] = (str)(self.errors)
-            self.wdt.feed()#WDG Handler 
+            #self.wdt.feed()#WDG Handler 
             if(self.ledRun.value()):
                 self.ledRun.off()
             else:
@@ -182,6 +182,7 @@ class TaskHandler:
             
     def mainTaskHandlerRun(self):
         #asyncio.core.DEB=1
+        asyncio.set_debug(True)
         loop = asyncio.get_event_loop()
         loop.create_task(self.routineHandler())
         loop.create_task(self.interfaceHandler())

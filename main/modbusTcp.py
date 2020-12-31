@@ -2,7 +2,7 @@ import socket
 import uselect as select
 from main import __config__
 from main import taskHandler
-from asyn import cancellable,Cancellable,Lock
+from asyn import cancellable,Cancellable
 import uasyncio as asyncio
 from gc import mem_free, collect
 
@@ -11,7 +11,6 @@ class Server:
     def __init__(self,wattmeterInterface,evseInterface,host='',port=8123,backlog=5,timeout=5):
         self.tcpModbus = tcpModbus(wattmeterInterface,evseInterface)
         self.socks = []
-        self.lock = Lock()
         self.closedSockets = 0
         self.cid = 0
         self.host = host
