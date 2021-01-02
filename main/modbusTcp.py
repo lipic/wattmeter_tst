@@ -67,6 +67,7 @@ class Server:
                 if i != "app1" and i!= 'app2':
                     #asyncio.StreamWriter(asyncio.activeSock[i],'').aclose()
                     await sreader.aclose()#asyncio.StreamReader(asyncio.activeSock[i]).aclose()
+                    await swriter.aclose()
             
             print('Client {} socket closed.'.format(self.cid))
 

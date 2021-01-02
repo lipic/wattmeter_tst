@@ -22,8 +22,14 @@ class Evse():
         state = ""
         status = ''
         setting = self.setting.getConfig()
-        self.dataLayer.data['NUMBER_OF_EVSE'] = setting["in,EVSE-NUMBER"]
-        for i in range(0,int(self.dataLayer.data['NUMBER_OF_EVSE'])):
+        self.dataLayer.data['NUMBER_OF_EVSE'] = int(setting["in,EVSE-NUMBER"])
+        
+        
+        current = self.balancingEvseCurrent()
+        #print("Balancign current",current)
+        currentContribution = self.currentEvse_Contribution(current)
+
+        for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
             try:
                 status = await self.__readEvse_data(1000,3,ID=(i+1))
                 if((status == 'SUCCESS_READ') == True):
@@ -31,7 +37,10 @@ class Evse():
                         if(setting["sw,WHEN AC IN: CHARGING"] == '1'):
                             if self.wattmeter.dataLayer.data["AC_IN"] == 1:
                                 if (setting["sw,ENABLE BALANCING"] == '1'):
-                                    current = self.balancEvseCurrent(i)
+                                    #Get available current
+                                    #if self.dataLayer.data['NUMBER_OF_EVSE'] > 1:
+                                    current = next(currentContribution)
+                                    print("EVSE:{} with current: {}".format(i+1,current))
                                     async with self.evseInterface as e:
                                         await e.writeEvseRegister(1000,[current],i+1)
                                 else:
@@ -43,7 +52,9 @@ class Evse():
                                     await e.writeEvseRegister(1000,[0],i+1)
                         else:
                             if (setting["sw,ENABLE BALANCING"] == '1'):
-                                current = self.balancEvseCurrent(i)
+                                #if self.dataLayer.data['NUMBER_OF_EVSE'] > 1:
+                                current = next(currentContribution)
+                                print("EVSE:{} with current: {}".format(i+1,current))
                                 async with self.evseInterface as e:
                                     await e.writeEvseRegister(1000,[current],i+1)
                             else:
@@ -81,7 +92,7 @@ class Evse():
         except Exception as e:
             raise Exception("__readEvse_data error: {}".format(e))
 
-    def balancEvseCurrent(self,ID):
+    def balancingEvseCurrent(self):
         I1_P = 0
         I2_P = 0
         I3_P = 0
@@ -119,30 +130,29 @@ class Evse():
       #  if ((maxCurrent <= int(self.setting.config["sl,BREAKER"])  * 2) and (0 == self.__Delay_for_breaker)) :
         self.__cntCurrent = self.__cntCurrent+1
         #Dle normy je zmena proudu EV nasledujici po zmene pracovni cyklu PWM maximalne 5s
-        if self.__cntCurrent >= 3:
-            if int(self.dataLayer.data["EV_STATE"][ID]) != 3:
-                if delta < 0:
+        if self.__cntCurrent >= 2:
+                # kdyz proud presahne proud jistice, tak odecti deltu od nastavovaneho proudu
+            if self.__regulationDelay>0:
+                self.__requestCurrent  = 0
+                
+            elif delta < 0:
+                if (self.__requestCurrent + delta)< 0:
                     self.__requestCurrent = 0
                 else:
-                    if self.__regulationDelay>0:
-                        self.__requestCurrent  = 0
-                    else:
-                        self.__requestCurrent  = 6
-            else :
-                # kdyz proud presahne proud jistice, tak odecti deltu od nastavovaneho proudu
-                if delta < 0:
-                    if (self.__requestCurrent + delta)< 0:
-                        self.__requestCurrent = 0
-                    else:
-                        if (self.__requestCurrent + delta)<6:
-                            self.__regulationDelay = 1
-                        self.__requestCurrent = self.__requestCurrent + delta
-                        self.regulationLock1 = True
-                        self.lock1Counter = 1
+                    if (self.__requestCurrent + delta)<6:
+                        self.__regulationDelay = 1
+                    self.__requestCurrent = self.__requestCurrent + delta
+                    self.regulationLock1 = True
+                    self.lock1Counter = 1
                         
+            elif not self.regulationLock1:
+                    self.__requestCurrent  = self.__requestCurrent + 1
+
+            else:
+                if self.__regulationDelay>0:
+                    self.__requestCurrent  = 0
                 else:
-                    if not self.regulationLock1:
-                        self.__requestCurrent  = self.__requestCurrent + 1
+                    self.__requestCurrent  = 6
 
             self.__cntCurrent = 0
             
@@ -158,12 +168,34 @@ class Evse():
             self.__regulationDelay = self.__regulationDelay +1
         if self.__regulationDelay>60:
             self.__regulationDelay = 0
+        sum = 0
+        for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
+            sum += int(self.setting.config["inp,EVSE{}".format(i+1)])
         
-        if self.__requestCurrent > int(self.setting.config["inp,EVSE{}".format(ID + 1)]):
-            self.__requestCurrent = int(self.setting.config["inp,EVSE{}".format(ID+1)])
-        
+        if self.__requestCurrent > sum:
+            self.__requestCurrent = sum
+
         return  self.__requestCurrent
 
+    def currentEvse_Contribution(self,current):
+        pom = current/self.dataLayer.data['NUMBER_OF_EVSE']
+        length = self.dataLayer.data['NUMBER_OF_EVSE']
+        contibutinCurrent = [i for i in range(0,length)]
+        for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
+            if pom<6:
+                length -= 1
+                contibutinCurrent[self.dataLayer.data['NUMBER_OF_EVSE']-i-1]=0
+                if length != 0:
+                    pom = current/length
+            else:
+                contibutinCurrent[self.dataLayer.data['NUMBER_OF_EVSE']-i-1]=int(pom)
+            
+        i = 0
+        while i<self.dataLayer.data['NUMBER_OF_EVSE']:
+            if contibutinCurrent[i] > int(self.setting.config["inp,EVSE{}".format(i+1)]):
+                contibutinCurrent[i] = int(self.setting.config["inp,EVSE{}".format(i+1)])
+            yield contibutinCurrent[i]
+            i += 1
         
 class DataLayer:
     def __init__(self):
