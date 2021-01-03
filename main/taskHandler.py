@@ -14,8 +14,7 @@ from main import wattmeter
 from main import evse
 from main import __config__
 import pool
-
-from main import modbusTcp
+import modbusTcp
 
 EVSE_ERR = 1
 WATTMETER_ERR = 2
@@ -48,11 +47,14 @@ class TaskHandler:
                                       'localWebserverHandler':[self.localWebserverHandler,20],
                                       'ledErrorHandler':[self.ledErrorHandler.ledHandler,1],
                                       'ledWifiHandler':[self.ledWifiHandler.ledHandler,1],
-                                      'wifihandler':[self.wifiHandler,2]}
+                                      'wifihandler':[self.wifiHandler,2],
+                                      'systemHandler':[self.systemHandler,5]}
      
     def memFree(self):
+        before = mem_free()
         collect()
-        mem_free()
+        after = mem_free()
+        #print("Memory before: {} & After: {}".format(before,after))
         
     async def routineHandler(self):
         pol = pool.Pool(5)
@@ -172,15 +174,13 @@ class TaskHandler:
 
     #Handler for time
     async def systemHandler(self):
-        while True:
-            self.setting.config['ERROR'] = (str)(self.errors)
-            self.wdt.feed()#WDG Handler 
-            if(self.ledRun.value()):
-                self.ledRun.off()
-            else:
-                self.ledRun.on()
-            self.memFree()
-            await asyncio.sleep(1)
+        self.setting.config['ERROR'] = (str)(self.errors)
+        self.wdt.feed()#WDG Handler 
+        if(self.ledRun.value()):
+            self.ledRun.off()
+        else:
+            self.ledRun.on()
+        self.memFree()
             
     def mainTaskHandlerRun(self):
         #asyncio.core.DEB=1
@@ -188,7 +188,6 @@ class TaskHandler:
         loop = asyncio.get_event_loop()
         loop.create_task(self.routineHandler())
         loop.create_task(self.interfaceHandler())
-        loop.create_task(self.systemHandler())
         loop.create_task(NamedTask('app1',self.webServerApp.webServerRun,1,'192.168.4.1','app1')())
         loop.create_task(self.uModBusTCP.run(debug=True))
         loop.run_forever()

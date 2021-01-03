@@ -1,5 +1,8 @@
 # wattmeter_tst
 
+##version 0.065
+1. **WDG add to queue**
+
 ##version 0.064
 1. **Add multiple EVSE balancing** - Adding multiple balancing for more then one EVSE wallbox
 2. **Add await statment in webserver app** - It could cause problem, which broke socket port
