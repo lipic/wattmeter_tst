@@ -132,7 +132,7 @@ class Evse():
         #Dle normy je zmena proudu EV nasledujici po zmene pracovni cyklu PWM maximalne 5s
         if self.__cntCurrent >= 2:
                 # kdyz proud presahne proud jistice, tak odecti deltu od nastavovaneho proudu
-            if self.__regulationDelay>0:
+            if self.__regulationDelay > 0:
                 self.__requestCurrent  = 0
                 
             elif delta < 0:
@@ -147,12 +147,6 @@ class Evse():
                         
             elif not self.regulationLock1:
                     self.__requestCurrent  = self.__requestCurrent + 1
-
-            else:
-                if self.__regulationDelay>0:
-                    self.__requestCurrent  = 0
-                else:
-                    self.__requestCurrent  = 6
 
             self.__cntCurrent = 0
             
