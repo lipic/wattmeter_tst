@@ -14,7 +14,7 @@ from main import wattmeter
 from main import evse
 from main import __config__
 import pool
-from main import modbusTcp
+import modbusTcp
 
 
 EVSE_ERR = 1
