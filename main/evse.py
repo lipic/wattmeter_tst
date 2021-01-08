@@ -178,6 +178,7 @@ class Evse():
                 activeEvse += 1
         if activeEvse == 0:
             activeEvse = 1
+        print("Active EVSE: {}".format(activeEvse))
         pom = current/activeEvse
         length = self.dataLayer.data['NUMBER_OF_EVSE']
         contibutinCurrent = [i for i in range(0,length)]
