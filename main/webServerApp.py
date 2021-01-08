@@ -66,7 +66,6 @@ class WebServerApp:
                 reg = int(i['reg'])
                 ID = int(i['id'])
                 data = int(i['value'])
-                print(i)
                 if i['type'] == 'read':
                     try:
                         if ID == 0:

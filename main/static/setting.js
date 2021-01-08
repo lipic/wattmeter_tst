@@ -151,11 +151,14 @@ function Setting() {
                           success: function (t) {
                               $("#modbusRW").html(t.datalayer),
                                   1 == t.process
-                                      ? console.log("OK")//($("#modbusStatus").text("Proccess successful"), $("#value").val(t.value), $("#modbusStatus").css("color", "green"), $("#readReg").find("span").remove(),$("#writeReg").find("span").remove())
-                                      : console.log("NOT OK")//($("#modbusStatus").text("Proccess unsuccessful: " + t.value), $("#modbusStatus").css("color", "red"), $("#readReg").find("span").remove(),$("#writeReg").find("span").remove());
+                                      ? ($("#modbusStatus").text("Proccess successful"), $("#value").val(t.value), $("#modbusStatus").css("color", "green"), $("#readReg").find("span").remove(),$("#writeReg").find("span").remove())
+                                      : ($("#modbusStatus").text("Proccess unsuccessful: " + t.value), $("#modbusStatus").css("color", "red"), $("#readReg").find("span").remove(),$("#writeReg").find("span").remove());
                           },
                           error: function(){
-                            console.log("Error response")
+                            $("#modbusStatus").text("Response error"),
+                            $("#modbusStatus").css("color", "red"),
+                            $("#writeReg").find("span").remove(),
+                            $("#readReg").find("span").remove();
                         }
                           
                       });

@@ -55,7 +55,7 @@ class TaskHandler:
         before = mem_free()
         collect()
         after = mem_free()
-        print("Memory before: {} & After: {}".format(before,after))
+        #print("Memory before: {} & After: {}".format(before,after))
         
     async def routineHandler(self):
         pol = pool.Pool(5)
