@@ -172,7 +172,13 @@ class Evse():
         return  self.__requestCurrent
 
     def currentEvse_Contribution(self,current):
-        pom = current/self.dataLayer.data['NUMBER_OF_EVSE']
+        activeEvse = 0
+        for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
+            if self.data["EV_STATE"][i] == 3:
+                activeEvse += 1
+        if activeEvse == 0:
+            activeEvse = 1
+        pom = current/activeEvse
         length = self.dataLayer.data['NUMBER_OF_EVSE']
         contibutinCurrent = [i for i in range(0,length)]
         for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
