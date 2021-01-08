@@ -174,7 +174,7 @@ class Evse():
     def currentEvse_Contribution(self,current):
         activeEvse = 0
         for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
-            if self.data["EV_STATE"][i] == 3:
+            if self.dataLayer.data["EV_STATE"][i] == 3:
                 activeEvse += 1
         if activeEvse == 0:
             activeEvse = 1
