@@ -37,33 +37,27 @@ class WebServerApp:
          
     def main(self,req, resp):
         collect()
-        mem_free()
         yield from picoweb.start_response(resp)
         yield from self.app.render_template(resp,"main.html")
     
     def overView(self,req, resp):
         collect()
-        mem_free()
         yield from picoweb.start_response(resp)
-        collect()
-        mem_free()
         yield from self.app.render_template(resp,"overview.html")
 
     def settings(self,req, resp):
         collect()
-        mem_free()
         yield from picoweb.start_response(resp)
-        yield from self.app.render_template(resp, "settings.html", (req,))
+        yield from self.app.render_template(resp,"settings.html", (req,))
         
     def powerChart(self,req, resp):
         collect()
-        mem_free()
         yield from picoweb.start_response(resp)
-        yield from self.app.render_template(resp, "powerChart.html", (req,))
+        yield from self.app.render_template(resp,"powerChart.html", (req,))
     
     def modbusRW(self,req, resp):
         collect()
-        mem_free()
+        print("Jsem tuuuuuuuuuuuuuuuuuuu")
         if req.method == "POST":
             datalayer = {}
             req = await  self.proccessMsg(req)
@@ -107,18 +101,16 @@ class WebServerApp:
                     except Exception as e:
                         print("Error during reading",e)
                         datalayer = {"process":e}
-
+            print("Odesilam req", datalayer)
             yield from picoweb.jsonify(resp,datalayer)
         
     def energyChart(self,req, resp):
         collect()
-        mem_free()
         yield from picoweb.start_response(resp)
         yield from self.app.render_template(resp, "energyChart.html", (req,))
         
     def updateData(self,req, resp):
-        collect()
-        mem_free() 
+        collect() 
         if req.method == "POST":
             datalayer = {}
             req = await  self.proccessMsg(req)
@@ -144,7 +136,6 @@ class WebServerApp:
             
     def updateWificlient(self,req, resp):
         collect()
-        mem_free() 
         if req.method == "POST":
             datalayer = {}
             req = await  self.proccessMsg(req)
@@ -165,7 +156,6 @@ class WebServerApp:
     def updateSetting(self,req, resp):
 
         collect()
-        mem_free() 
         setting = __config__.Config()
         
         if req.method == "POST":
@@ -186,7 +176,6 @@ class WebServerApp:
                 
     def dataTable(self,req, resp):
         collect()
-        mem_free()
         yield from picoweb.start_response(resp)
         yield from self.app.render_template(resp, "datatable.html", (req,))
 

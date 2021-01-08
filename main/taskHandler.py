@@ -14,7 +14,7 @@ from main import wattmeter
 from main import evse
 from main import __config__
 import pool
-from main import modbusTcp
+import modbusTcp
 
 
 EVSE_ERR = 1
@@ -55,7 +55,7 @@ class TaskHandler:
         before = mem_free()
         collect()
         after = mem_free()
-        #print("Memory before: {} & After: {}".format(before,after))
+        print("Memory before: {} & After: {}".format(before,after))
         
     async def routineHandler(self):
         pol = pool.Pool(5)
