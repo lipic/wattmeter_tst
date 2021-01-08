@@ -1,5 +1,7 @@
 # wattmeter_tst
 
+##version 0.065
+1. **Add Modbus setting interface** - for setting EVSE or WATTMETER 
 
 ##version 0.064
 1. **Add multiple EVSE balancing** - Adding multiple balancing for more then one EVSE wallbox
