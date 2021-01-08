@@ -95,7 +95,7 @@ class WebServerApp:
                         if data is None:
                             datalayer = {"process":0,"value":"Error during writing register"}
                         else:
-                            datalayer = {"process":1,"value":data}
+                            datalayer = {"process":1,"value":  int(((data[0]) << 8) | (data[1])}
 
                     except Exception as e:
                         print("Error during reading",e)
