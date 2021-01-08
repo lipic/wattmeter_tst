@@ -20,25 +20,25 @@ class Evse():
         #first read data from evse
         current = 0
         state = ""
-        status = ''
+        status = []
         setting = self.setting.getConfig()
         self.dataLayer.data['NUMBER_OF_EVSE'] = int(setting["in,EVSE-NUMBER"])
         
-        
-        current = self.balancingEvseCurrent()
-        #print("Balancign current",current)
-        currentContribution = self.currentEvse_Contribution(current)
-
         for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
             try:
-                status = await self.__readEvse_data(1000,3,ID=(i+1))
-                if((status == 'SUCCESS_READ') == True):
+                status.append(await self.__readEvse_data(1000,3,ID=(i+1)))
+            except Exception as e:
+                raise Exception("evseHandler error: {}".format(e))
+
+        current = self.balancingEvseCurrent()
+        currentContribution = self.currentEvse_Contribution(current)
+        for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
+            try:
+                if((status[i] == 'SUCCESS_READ') == True):
                     if(setting["sw,ENABLE CHARGING"] == '1'):
                         if(setting["sw,WHEN AC IN: CHARGING"] == '1'):
                             if self.wattmeter.dataLayer.data["AC_IN"] == 1:
                                 if (setting["sw,ENABLE BALANCING"] == '1'):
-                                    #Get available current
-                                    #if self.dataLayer.data['NUMBER_OF_EVSE'] > 1:
                                     current = next(currentContribution)
                                     print("EVSE:{} with current: {}".format(i+1,current))
                                     async with self.evseInterface as e:
@@ -139,7 +139,7 @@ class Evse():
                 if (self.__requestCurrent + delta)< 0:
                     self.__requestCurrent = 0
                 else:
-                    if (self.__requestCurrent + delta)<6:
+                    if (self.__requestCurrent + delta)< int(self.setting.config["in,BREAKER"])/2 :
                         self.__regulationDelay = 1
                     self.__requestCurrent = self.__requestCurrent + delta
                     self.regulationLock1 = True
