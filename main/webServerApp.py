@@ -78,6 +78,7 @@ class WebServerApp:
                             datalayer = {"process":0,"value":"Error during reading register"}
                         else:
                             datalayer = {"process":1,"value":int(((data[0]) << 8) | (data[1]))}
+                            print("Tisknu data:.......",int(((data[0]) << 8) | (data[1])))
 
                     except Exception as e:
                         print("Error during reading",e)
