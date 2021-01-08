@@ -151,7 +151,7 @@ function Setting() {
                           success: function (t) {
                               $("#modbusRW").html(t.datalayer),
                                   1 == t.process
-                                      ? ($("#modbusStatus").text("Proccess successful"), $("#value").val(t.value), $("#modbusStatus").css("color", "green"), $("#readReg").find("span").remove(),$("#writeReg").find("span").remove())
+                                      ? ($("#modbusStatus").text("Proccess successful"),$("#valueM").val(t.value), $("#modbusStatus").css("color", "#74DF00"), $("#readReg").find("span").remove(),$("#writeReg").find("span").remove())
                                       : ($("#modbusStatus").text("Proccess unsuccessful: " + t.value), $("#modbusStatus").css("color", "red"), $("#readReg").find("span").remove(),$("#writeReg").find("span").remove());
                           },
                           error: function(){
