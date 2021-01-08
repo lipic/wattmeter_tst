@@ -14,7 +14,8 @@ from main import wattmeter
 from main import evse
 from main import __config__
 import pool
-from main import modbusTcp
+
+import modbusTcp
 
 
 EVSE_ERR = 1
@@ -32,7 +33,7 @@ class TaskHandler:
         evseInterface = evseComInterface.Interface(9600,lock = Lock(200))
         self.wattmeter = wattmeter.Wattmeter(wattInterface) #Create instance of Wattmeter
         self.evse = evse.Evse(self.wattmeter,evseInterface)
-        self.webServerApp = webServerApp.WebServerApp(wifi,self.wattmeter, self.evse) #Create instance of Webserver App
+        self.webServerApp = webServerApp.WebServerApp(wifi,self.wattmeter, self.evse,wattInterface,evseInterface) #Create instance of Webserver App
         self.uModBusTCP = modbusTcp.Server(wattInterface,evseInterface)
         self.settingAfterNewConnection = False
         self.wdt = WDT(timeout=60000) 

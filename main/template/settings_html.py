@@ -60,9 +60,38 @@ def render(*a, **d):
             </div>
             <div class=\"btn-group\"><button id=\"setSSID\" type=\"button\" class=\"btn btn-primary\">submit</button><button id=\"refreshSSID\" type=\"button\" class=\"btn btn-primary\">refresh</button></div>
         </div>
-        <br />
     </div>
-    <footer></footer>
+
+
+    <div class=\"container-fluid mt-3 text-center bg border border-secondary\"><span class=\"dim\">Modbus R/W interface</span></div>
+    <div class=\"container-sm text-white text-center\">
+        <table class=\"table table-borderless text-center text-white w-100\">
+            
+                <thead>
+                    <td class=\"w-33 unit\">Id</td>
+                    <td class=\"w-33 unit\">Register</td>
+                    <td class=\"w-33 unit\">Value</td>
+
+                </thead>
+                <tbody>
+                <tr>
+                    <td><input style=\"width:100%\" id=\"id\" name=\"id\" type=\"number\" size=\"3\" /></td>
+                    <td><input style=\"width:100%\"id=\"register\" name=\"register\" type=\"number\" size=\"4\"/></td>
+                    <td><input style=\"width:100%\"id=\"valueM\" name=\"value\" type=\"number\" size=\"4\"/></td>
+                </tr>
+            </tbody>
+        </table>
+   
+        <div class=\"container text-center text-white\">
+            <div class=\"row mt-3\">
+                <div class=\"col\">
+                    <h6 id=\"modbusStatus\"></h6>
+                </div>
+            </div>
+            <div class=\"btn-group\"><button id=\"readReg\" type=\"button\" class=\"btn btn-primary\">read</button><button id=\"writeReg\" type=\"button\" class=\"btn btn-primary\">write</button></div>
+        </div>
+    </div>
 </div>
+<footer></footer>
 
 </html>"""
