@@ -1,7 +1,7 @@
 # wattmeter_tst
 
 ##version 0.066
-1. **Precompiled python code -> less memory RAM usage**
+1. **Precompiled python code -> less memory RAM usage_**
 
 ##version 0.065
 1. **Add Modbus setting interface** - interface for setting EVSE or WATTMETER
