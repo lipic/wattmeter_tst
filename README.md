@@ -1,5 +1,8 @@
 # wattmeter_tst
 
+##version 0.067
+1. **Repair webserver thread closing procedure**
+
 ##version 0.066
 1. **Precompiled python code -> less memory RAM usage_**
 
