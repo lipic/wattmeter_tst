@@ -1,5 +1,8 @@
 # wattmeter_tst
 
+##version 0.068
+1. **Edit load js library for ios**
+
 ##version 0.067
 1. **Repair webserver thread closing procedure**
 
