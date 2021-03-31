@@ -1,5 +1,8 @@
 # wattmeter_tst
 
+##version 0.069
+1. **remove wallpaper from web**
+
 ##version 0.068
 1. **Edit load js library for ios**
 
