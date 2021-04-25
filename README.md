@@ -1,10 +1,12 @@
 # wattmeter_tst
 
-##version 1.01
+##version 1.011
 1. **Po dopoeni evse se nenastavi stav na COM ERROR**
-2. **Uprava balancovani**
-3. **Uprava, pri chybe u vlakna v socketu -> reset ESP**
-4. **Oprava grafickeho zobrazeni EVSE (baterie se pri prechodu z nabijej do ready) nezmenilo barevne pozad**
+
+##version 1.010
+1. **Uprava balancovani**
+2. **Uprava, pri chybe u vlakna v socketu -> reset ESP**
+3. **Oprava grafickeho zobrazeni EVSE (baterie se pri prechodu z nabijej do ready) nezmenilo barevne pozad**
 
 ##version 0.069
 1. **remove wallpaper from web**
