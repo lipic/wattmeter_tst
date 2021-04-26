@@ -69,8 +69,8 @@ function chargingAnim(t, e) {
 }
 function handleEvseAPI(t, e, a, r) {
     for (var n = 1; n <= t; n++)
-        $("#ACTUAL_CONFIG_CURRENT" + n).text(0 !== e[n - 1] ? e[n - 1] + " A" : "COMM ERR."),
-            $("#ACTUAL_OUTPUT_CURRENT" + n).text(0 !== a[n - 1] ? a[n - 1] + " A" : "COMM ERR."),
+        $("#ACTUAL_CONFIG_CURRENT" + n).text(((0 !== e[n - 1]) && (isNaN(e[n - 1]) == true)) ? e[n - 1] + " A" : "COMM ERR."),
+            $("#ACTUAL_OUTPUT_CURRENT" + n).text(((0 !== e[n - 1]) && (isNaN(a[n - 1]) == true)) ? a[n - 1] + " A" : "COMM ERR."),
             (r[n - 1] < 1 || r[n - 1] > 3 || (isNaN(r[n - 1]) == true))
                 ? ($("#EV_STATE" + n).text("COMM ERR."),chargingAnim("paused", n), $(".charge" + (1 + 4 * (n - 1))).css("background-color", "black"))
                 : 1 == r[n - 1]
