@@ -1,5 +1,8 @@
 # wattmeter_tst
 
+##version 1.101
+1. **Uprava balancovaciho algoritmu**
+
 ##version 1.011
 1. **Po dopoeni evse se nenastavi stav na COM ERROR**
 
