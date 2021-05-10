@@ -1,6 +1,10 @@
 # wattmeter_tst
 
 ##version 1.101
+1. **Uprava zaokrouhlovani pri rozdelovani proudu u EVSE**
+2. **Uprava sipek u smeru toku energie**
+
+##version 1.101
 1. **Uprava balancovaciho algoritmu**
 
 ##version 1.011
