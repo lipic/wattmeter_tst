@@ -1,5 +1,8 @@
 # wattmeter_tst
 
+##version 1.223
+1. **Oprava chyby pri vycitani dat z evse**
+
 ##version 1.101
 1. **Uprava zaokrouhlovani pri rozdelovani proudu u EVSE**
 2. **Uprava sipek u smeru toku energie**
