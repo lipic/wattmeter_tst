@@ -23,6 +23,8 @@ function loadLibraryForPC() {
             requireScript("evse", "0.0.0", "main/static/evse.js"),
             requireScript("energyChart", "0.0.0", "main/static/energyChart.js"),
             requireScript("powerChart", "0.0.0", "main/static/powerChart.js")
+            appendLibrary("main/static/func.js")
+            appendLibrary("main/static/setting.js")
         });
     })
     
