@@ -18,13 +18,15 @@ function loadLibraryForPC() {
             requireScript("bootstrap_switch_button", "1.1.0", "https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/dist/bootstrap-switch-button.min.js"),
             requireScript("gauge.min", "0.0.0", "http://bernii.github.io/gauge.js/dist/gauge.min.js"),
             requireScript("Chart", "2.9.3", "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"),
-            requireScript("chartjs_plugin", "3.5.1", "https://unpkg.com/chartjs-plugin-streaming@latest/dist/chartjs-plugin-streaming.min.js");
-            requireScript("gaugeSetting", "0.0.0", "main/static/gauge.js"),
-            requireScript("evse", "0.0.0", "main/static/evse.js"),
-            requireScript("energyChart", "0.0.0", "main/static/energyChart.js"),
-            requireScript("powerChart", "0.0.0", "main/static/powerChart.js")
-            appendLibrary("main/static/func.js")
-            appendLibrary("main/static/setting.js")
+            whenAvailable("moment", function () {
+                requireScript("chartjs_plugin", "3.5.1", "https://unpkg.com/chartjs-plugin-streaming@latest/dist/chartjs-plugin-streaming.min.js");
+                requireScript("gaugeSetting", "0.0.0", "main/static/gauge.js"),
+                requireScript("evse", "0.0.0", "main/static/evse.js"),
+                requireScript("energyChart", "0.0.0", "main/static/energyChart.js"),
+                requireScript("powerChart", "0.0.0", "main/static/powerChart.js")
+                appendLibrary("main/static/func.js")
+                appendLibrary("main/static/setting.js")
+            });
         });
     })
     
