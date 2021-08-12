@@ -1,7 +1,9 @@
 function loadLibrary() {
     if (null == isMobile.any()) {
         appendLibrary("main/static/loadLibraryForPC.js")
-        whenAvailable("loadLibraryForPC()", loadLibraryForPC())
+        whenAvailable("loadLibraryForPC", function(t){
+            loadLibraryForPC()
+        })
     }
     appendLibrary("main/static/func.js")
     appendLibrary("main/static/setting.js")
