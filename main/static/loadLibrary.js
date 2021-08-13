@@ -8,7 +8,7 @@ function loadLibrary() {
 }
 function whenAvailable(i, n) {
     window.setTimeout(function () {
-        window[i] ? n(window[i]) : whenAvailable(i, n);
+        (window[i]||(typeof i != "undefined")) ? n(window[i]) : whenAvailable(i, n);
     }, 10);
 }
 function appendLibrary(i) {
