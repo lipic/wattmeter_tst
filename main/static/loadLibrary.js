@@ -5,6 +5,7 @@ function loadLibrary() {
               loadLibraryForPC();
           }))
         : (whenAvailable("$",function(i){
+            appendLibrary("main/static/gauge.js"),
             appendLibrary("main/static/func.js"), appendLibrary("main/static/setting.js")
         }));
 }
