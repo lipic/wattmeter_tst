@@ -4,11 +4,15 @@ function loadLibrary() {
           whenAvailable("loadLibraryForPC", function (i) {
               loadLibraryForPC();
           }))
-        : (whenAvailable("GaugeSetting",function(i){appendLibrary("main/static/func.js"), appendLibrary("main/static/setting.js")}));
+        : (whenAvailable("$",function(i){
+            $(window).on('load', function() {
+                appendLibrary("main/static/func.js"), appendLibrary("main/static/setting.js")
+            });
+        }));
 }
 function whenAvailable(i, n) {
     window.setTimeout(function () {
-        (window[i]||(typeof i != "undefined")) ? n(window[i]) : whenAvailable(i, n);
+        window[i] ? n(window[i]) : whenAvailable(i, n);
     }, 10);
 }
 function appendLibrary(i) {
