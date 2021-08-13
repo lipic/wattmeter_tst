@@ -5,9 +5,7 @@ function loadLibrary() {
               loadLibraryForPC();
           }))
         : (whenAvailable("$",function(i){
-            $.getScript("powerChart.js", function(){
-                appendLibrary("main/static/func.js"), appendLibrary("main/static/setting.js")
-            });
+            appendLibrary("main/static/func.js"), appendLibrary("main/static/setting.js")
         }));
 }
 function whenAvailable(i, n) {
@@ -16,7 +14,7 @@ function whenAvailable(i, n) {
     }, 10);
 }
 function appendLibrary(i) {
-    (e = document.createElement("script")), (e.type = "application/javascript"), (e.src = i), document.getElementsByTagName("head")[0].appendChild(e);
+    (e = document.createElement("script")),(e.defer = true),(e.type = "application/javascript"), (e.src = i), document.getElementsByTagName("head")[0].appendChild(e);
 }
 var isMobile = {
     Android: function () {
