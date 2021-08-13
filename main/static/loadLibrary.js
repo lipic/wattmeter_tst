@@ -5,7 +5,7 @@ function loadLibrary() {
               loadLibraryForPC();
           }))
         : (whenAvailable("$",function(i){
-            $(window).on('load', function() {
+            $.getScript("powerChart.js", function(){
                 appendLibrary("main/static/func.js"), appendLibrary("main/static/setting.js")
             });
         }));
