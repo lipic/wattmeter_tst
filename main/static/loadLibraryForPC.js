@@ -1,5 +1,5 @@
 function loadLibraryForPC() {
-    var t = ["static/style.css", "https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css", "https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/css/bootstrap-switch-button.min.css"];
+    var t = ["https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css","https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css", "https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/css/bootstrap-switch-button.min.css"];
     for (var e in t) {
         var r = e;
         if (!document.getElementById(r)) {
@@ -8,7 +8,7 @@ function loadLibraryForPC() {
             (s.id = r), (s.rel = "stylesheet"), (s.type = "text/css"), (s.href = t[e]), (s.media = "all"), i.appendChild(s);
         }
     }
-    appendLibrary("static/cached-webpgr.js"),
+    appendLibrary("main/static/cached-webpgr.js"),
         whenAvailable("requireScript", function (t) {
             requireScript("jquery", "3.5.1", "https://code.jquery.com/jquery-3.5.1.min.js"),
                 requireScript("moment", "1.0.0", "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.0/moment.min.js"),
