@@ -19,12 +19,12 @@ function loadLibraryForPC() {
                         requireScript("Chart", "3.5.1", "https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"),
                         whenAvailable("Chart", function () {
                             requireScript("chartjs_plugin", "3.5.1", "https://unpkg.com/chartjs-plugin-streaming@2.0.0/dist/chartjs-plugin-streaming.min.js"),
-                                requireScript("gaugeSetting", "0.0.0", "static/gauge.js"),
-                                requireScript("evse", "0.0.0", "static/evse.js"),
-                                requireScript("energyChart", "0.0.0", "static/energyChart.js"),
-                                requireScript("powerChart", "0.0.0", "static/powerChart.js"),
-                                appendLibrary("static/func.js"),
-                                appendLibrary("static/setting.js");
+                                requireScript("gaugeSetting", "0.0.0", "main/static/gauge.js"),
+                                requireScript("evse", "0.0.0", "main/static/evse.js"),
+                                requireScript("energyChart", "0.0.0", "main/static/energyChart.js"),
+                                requireScript("powerChart", "0.0.0", "main/static/powerChart.js"),
+                                appendLibrary("main/static/func.js"),
+                                appendLibrary("main/static/setting.js");
                         });
                 });
         });
