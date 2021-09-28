@@ -1,5 +1,5 @@
 function loadLibraryForPC() {
-    var t = ["https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css","https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css", "https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/css/bootstrap-switch-button.min.css"];
+    var t = ["main/static/style.css","https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css", "https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/css/bootstrap-switch-button.min.css","https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"];
     for (var e in t) {
         var r = e;
         if (!document.getElementById(r)) {
@@ -16,9 +16,9 @@ function loadLibraryForPC() {
                     requireScript("bootstrap", "0.0.0", "https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"),
                         requireScript("bootstrap_switch_button", "1.1.0", "https://cdn.jsdelivr.net/gh/gitbrent/bootstrap-switch-button@1.1.0/dist/bootstrap-switch-button.min.js"),
                         requireScript("gauge.min", "0.0.0", "http://bernii.github.io/gauge.js/dist/gauge.min.js"),
-                        requireScript("Chart", "3.5.1", "https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"),
+                        requireScript("Chart", "3.5.2", "https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"),
                         whenAvailable("Chart", function () {
-                            requireScript("chartjs_plugin", "3.5.1", "https://unpkg.com/chartjs-plugin-streaming@2.0.0/dist/chartjs-plugin-streaming.min.js"),
+                            requireScript("chartjs_plugin", "3.5.2", "https://unpkg.com/chartjs-plugin-streaming@2.0.0/dist/chartjs-plugin-streaming.min.js"),
                                 requireScript("gaugeSetting", "0.0.0", "main/static/gauge.js"),
                                 requireScript("evse", "0.0.0", "main/static/evse.js"),
                                 requireScript("energyChart", "0.0.0", "main/static/energyChart.js"),
