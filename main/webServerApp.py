@@ -134,8 +134,8 @@ class WebServerApp:
             #picoweb.sendstream(resp,self.datalayer)
             #print("kaf",next(datalayer).copy(self.evse.dataLayer.data))
             #yield from resp.awrite()
-            print("fujky")
-            yield from resp.awrite(json.dumps(next(self.wattmeter.dataLayer).copy(self.evse.dataLayer.data)))
+            print("hnukky")
+            yield from resp.awrite(json.dumps((next(self.wattmeter.dataLayer)).copy(self.evse.dataLayer.data)))
 
             #self.datalayer = json.dumps(self.datalayer)
             #yield from resp.awrite(self.datalayer)
