@@ -129,11 +129,11 @@ class WebServerApp:
                 
         else:
             yield from picoweb.start_response(resp, "application/json")
-            datalayer = self.wattmeter.dataLayer.data
-            datalayer.update(self.evse.dataLayer.data)
+            #datalayer = self.wattmeter.dataLayer.data
+            #datalayer.update(self.evse.dataLayer.data)
             #picoweb.sendstream(resp,self.datalayer)
             print("kaf")
-            yield from resp.awrite({**next(datalayer),**self.evse.dataLayer.data})
+            yield from resp.awrite(json.dumps({**next(datalayer),**self.evse.dataLayer.data}))
             #yield from resp.awrite(json.dumps(self.evse.dataLayer.data))
 
             #self.datalayer = json.dumps(self.datalayer)
