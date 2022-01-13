@@ -135,7 +135,7 @@ class WebServerApp:
             #print("kaf",next(datalayer).copy(self.evse.dataLayer.data))
             #yield from resp.awrite()
             print("hnukky")
-            yield from resp.awrite(json.dumps(next(self.wattmeter.dataLayer,separators=(',', ':'))))
+            yield from resp.awrite(json.dumps(next(self.wattmeter.dataLayer),separators=(',', ':')))
 
             #self.datalayer = json.dumps(self.datalayer)
             #yield from resp.awrite(self.datalayer)
