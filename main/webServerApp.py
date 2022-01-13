@@ -2,7 +2,7 @@ import picoweb
 import wifiManager
 from machine import reset,RTC
 from time import time
-import json
+import ujson as json
 from gc import collect,mem_free
 from asyn import sleep,cancellable,StopTask
 import uasyncio as asyncio
@@ -135,7 +135,7 @@ class WebServerApp:
             #print("kaf",next(datalayer).copy(self.evse.dataLayer.data))
             #yield from resp.awrite()
             print("hnukky")
-            yield from resp.awrite(json.dumps(next(self.wattmeter.dataLayer),separators=(',', ':')))
+            yield from resp.awrite(json.dumps(next(self.wattmeter.dataLayer)))
 
             #self.datalayer = json.dumps(self.datalayer)
             #yield from resp.awrite(self.datalayer)
