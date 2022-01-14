@@ -1,6 +1,7 @@
 function updateData() {
     $.ajax({ url: "/updateData" }).done(function (t) {
         t = JSON.stringify(t)
+        t = t.replace('\\','')
         console.log("Tisknu:",t)
         $("#WATTMETER_TIME").text(t.WATTMETER_TIME);
         let e = parseInt(t.RUN_TIME, 10);
