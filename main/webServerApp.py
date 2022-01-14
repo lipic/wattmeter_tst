@@ -128,7 +128,7 @@ class WebServerApp:
             yield from picoweb.jsonify(resp,datalayer)
                 
         else:
-            yield from picoweb.start_response(resp, "application/json")
+            yield from picoweb.start_response(resp, "text/html")
             #datalayer = self.wattmeter.dataLayer.data
             #datalayer.update(self.evse.dataLayer.data)
             #data = map(str.replace("'","\""),datalayer)
@@ -138,6 +138,9 @@ class WebServerApp:
             #self.datalayer = json.dumps(self.datalayer)
             #yield from resp.awrite(self.datalayer)
 
+    def updateEvse(self,req,resp):
+            yield from picoweb.start_response(resp, "application/json")
+            yield from resp.awrite("{}".format(self.evse.dataLayer))
 
     def updateWificlient(self,req, resp):
         
