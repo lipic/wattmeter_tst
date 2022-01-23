@@ -156,7 +156,7 @@ class Wattmeter:
                 return "SUCCESS_READ"
             
             elif (receiveData != "Null") and (reg == 2502):
-                self.dataLayer.data['Es'] = int(((receiveData[0]) << 8) | receiveData[1]) + int(((receiveData[2])<< 8)|receiveData[3]) + int((receiveData[4] << 8) |receiveData[5]) - int((receiveData[6] << 8) |receiveData[7]) - int((receiveData[8] << 8) |receiveData[9]) - int((receiveData[10] << 8) |receiveData[11])
+                self.dataLayer.data['Em'] = int(((receiveData[0]) << 8) | receiveData[1]) + int(((receiveData[2])<< 8)|receiveData[3]) + int((receiveData[4] << 8) |receiveData[5]) - int((receiveData[6] << 8) |receiveData[7]) - int((receiveData[8] << 8) |receiveData[9]) - int((receiveData[10] << 8) |receiveData[11])
                 return "SUCCESS_READ"
              
             elif (receiveData != "Null") and (reg == 2802):
