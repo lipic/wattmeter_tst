@@ -23,14 +23,14 @@ class Evse():
         state = ""
         status = []
         self.dataLayer.data['NUMBER_OF_EVSE'] = int(self.setting.config["in,EVSE-NUMBER"])
-
+        print("EVSE HANDLER, ",self.dataLayer.data['NUMBER_OF_EVSE'])
         for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
             try:
                 status.append(await self.__readEvse_data(1000,3,ID=(i+1)))
             except Exception as e:
                 print("evseHandler with ID: {} error: {}".format((i+1),e))
                 #raise Exception("evseHandler with ID: {} error: {}".format((i+1),e))
-
+        print("Balanc current")
         current = self.balancingEvseCurrent()
         currentContribution = self.currentEvse_Contribution(current)
         for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
