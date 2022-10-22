@@ -23,6 +23,7 @@ class Evse():
         state = ""
         status = []
         self.dataLayer.data['NUMBER_OF_EVSE'] = int(self.setting.config["in,EVSE-NUMBER"])
+        print("=============================================")
         print("EVSE HANDLER, ",self.dataLayer.data['NUMBER_OF_EVSE'])
         for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
             try:
@@ -30,7 +31,6 @@ class Evse():
             except Exception as e:
                 print("evseHandler with ID: {} error: {}".format((i+1),e))
                 #raise Exception("evseHandler with ID: {} error: {}".format((i+1),e))
-        print("Balanc current")
         current = self.balancingEvseCurrent()
         currentContribution = self.currentEvse_Contribution(current)
         for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
@@ -187,8 +187,9 @@ class Evse():
                     print("EV is charging.")
                     self.__requestCurrent = self.__requestCurrent + 1
                 else:
-                    print("EV is unconnected.")
-                    pass
+                    print("EV is unconnected.")                    
+                    if (delta)>=6:
+                        self.__requestCurrent = 6
 
             self.__cntCurrent = 0
             
