@@ -162,15 +162,11 @@ class Evse():
             delta = int(self.setting.config["in,MAX-CURRENT-FROM-GRID-A"]) - maxCurrent
 
 
-        #print("MaxCurrent: {}, MinCurrent: {}, Delta: {}".format(maxCurrent,minCurrent,delta))
-        #print("Maximalni proud: ", delta)
-        #Kdyz je proud vetsi nez dvojnasobek proudu jsitice okamzite vypni a pak pockej 10s
-        #if ((maxCurrent <= int(self.setting.config["sl,BREAKER"])  * 2) and (0 == self.__Delay_for_breaker)) :
+        print("I1:{}A, I2:{}A, I3:{}A, Delta: {}".format(I1,I2,I3,delta))
         self.__cntCurrent = self.__cntCurrent+1
         #Dle normy je zmena proudu EV nasledujici po zmene pracovni cyklu PWM maximalne 5s
         breaker = int(self.setting.config["in,MAX-CURRENT-FROM-GRID-A"])
         if (breaker*0.5 + delta)< 0:
-            #print("Vypinam eves: ",self.__requestCurrent)
             self.__requestCurrent = 0
             self.__regulationDelay = 1
 
@@ -185,12 +181,14 @@ class Evse():
                         
             elif not self.regulationLock1:
                 if (delta)>=6 and self.checkIfEVisConnected():
+                    print("EV is connected.")
                     self.__requestCurrent = self.__requestCurrent + 1
                 elif self.checkIfEVisCharging():
+                    print("EV is charging.")
                     self.__requestCurrent = self.__requestCurrent + 1
                 else:
+                    print("EV is unconnected.")
                     pass
-                    #self.__requestCurrent = 0
 
             self.__cntCurrent = 0
             
@@ -213,6 +211,7 @@ class Evse():
         if self.__requestCurrent > sum:
             self.__requestCurrent = sum
 
+        print("Request current: {}A".format(self.__requestCurrent))
         return  self.__requestCurrent
 
     def currentEvse_Contribution(self,current):
@@ -234,7 +233,7 @@ class Evse():
 
         length = connectedEvse
         contibutinCurrent = [i for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE'])]
-        
+        print("POM:{}A, LEN:{}".format(pom,length))        
         for i in range(self.dataLayer.data['NUMBER_OF_EVSE'],0,-1):
             if self.dataLayer.data["EV_STATE"][i-1] >= 2:
                 if pom<6:
