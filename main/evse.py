@@ -215,6 +215,8 @@ class Evse():
             self.__requestCurrent = sum
 
         print("Request current: {}A".format(self.__requestCurrent))
+        if self.__requestCurrent < 0 :
+            self.__requestCurrent = 0
         return  self.__requestCurrent
 
     def currentEvse_Contribution(self,current):
