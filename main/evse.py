@@ -188,10 +188,7 @@ class Evse():
                     self.__requestCurrent = self.__requestCurrent + 1
                 else:
                     print("EV is unconnected.")                    
-                    if (delta)>=6:
-                        self.__requestCurrent = 6
-                    else:
-                        self.__requestCurrent = 0
+                    pass
 
             self.__cntCurrent = 0
             
