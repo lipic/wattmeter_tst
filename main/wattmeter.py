@@ -58,8 +58,9 @@ class Wattmeter:
         status = await self.__readWattmeter_data(200,1)
         self.controlRelay()
         #Check if time-sync puls must be send
+        print("timeinit",self.timeInit, "lastminute", self.lastMinute)
         if (self.lastMinute is not int(time.localtime()[4]))and(self.timeInit == True):
-            
+            print("Jsem tu ....... ")
             if len(self.dataLayer.data["Pm"])<61:
                 self.dataLayer.data["Pm"].append(self.dataLayer.data['Em']*6)#self.dataLayer.data["P1"])
             else:
