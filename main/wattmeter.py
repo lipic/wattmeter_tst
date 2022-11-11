@@ -75,8 +75,7 @@ class Wattmeter:
             self.lastMinute = int(time.localtime()[4]) 
 
         if self.timeInit:
-            async with self.wattmeterInterface as w:
-                await w.writeWattmeterRegister(101,[1])
+            
             if self.lastHour is not int(time.localtime()[3]):
                 async with self.wattmeterInterface as w:
                     await w.writeWattmeterRegister(101,[1])
