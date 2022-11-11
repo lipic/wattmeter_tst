@@ -25,6 +25,7 @@ class Wattmeter:
         self.dataLayer.data['ID'] =self.setting.config['ID'] 
 
         self.tst = 0
+        self.err = 0
 
     async def wattmeterHandler(self):
         #Read data from wattmeter
@@ -43,6 +44,7 @@ class Wattmeter:
         curentYear = str(time.localtime()[0])[-2:] 
         self.dataLayer.data['WATTMETER_TIME'] = ("{0:02}.{1:02}.{2}  {3:02}:{4:02}:{5:02}".format(time.localtime()[2],time.localtime()[1],curentYear,time.localtime()[3],time.localtime()[4],time.localtime()[5]))
         #read U,I,P
+        status = await self.__readWattmeter_data(100,1)
         status = await self.__readWattmeter_data(1000,12)
         status = await self.__readWattmeter_data(2502,6)
         status = await self.__readWattmeter_data(2802,6)
@@ -57,10 +59,10 @@ class Wattmeter:
         #Total energy 
         status = await self.__readWattmeter_data(200,1)
         self.controlRelay()
+
         #Check if time-sync puls must be send
-        print("timeinit",self.timeInit, "lastminute", self.lastMinute)
         if (self.lastMinute is not int(time.localtime()[4]))and(self.timeInit == True):
-            print("Jsem tu ....... ")
+            
             if len(self.dataLayer.data["Pm"])<61:
                 self.dataLayer.data["Pm"].append(self.dataLayer.data['Em']*6)#self.dataLayer.data["P1"])
             else:
@@ -73,6 +75,8 @@ class Wattmeter:
             self.lastMinute = int(time.localtime()[4]) 
 
         if self.timeInit:
+            async with self.wattmeterInterface as w:
+                await w.writeWattmeterRegister(101,[1])
             if self.lastHour is not int(time.localtime()[3]):
                 async with self.wattmeterInterface as w:
                     await w.writeWattmeterRegister(101,[1])
@@ -116,10 +120,15 @@ class Wattmeter:
             self.dataLayer.data["M"] = self.fileHandler.getMonthlyEnergy(self.DAILY_CONSUMPTION)
 
     async def __readWattmeter_data(self,reg,length):
-        async with self.wattmeterInterface as w:
-                receiveData =  await w.readWattmeterRegister(reg,length)
        
+        self.tst += 1
+        
+
         try:
+            print("stability : {}".format(self.tst/(self.tst+self.err)*100))
+            async with self.wattmeterInterface as w:
+                receiveData =  await w.readWattmeterRegister(reg,length)
+                
             if (receiveData != "Null") and (reg == 1000):
                 self.dataLayer.data['I1'] =     int(((receiveData[0]) << 8) | (receiveData[1]))
                 self.dataLayer.data['I2'] =     int(((receiveData[2]) << 8) | (receiveData[3]))
@@ -199,6 +208,8 @@ class Wattmeter:
                 return "Timed out waiting for result."
             
         except Exception as e:
+            self.err += 1
+            print(e, reg)
             return "Exception: {}. UART is probably not connected.".format(e)
         
     def negotiationRelay(self):
