@@ -72,14 +72,13 @@ class Wattmeter:
             self.dataLayer.data["Pm"][0] = len(self.dataLayer.data["Pm"])
             async with self.wattmeterInterface as w:
                 await w.writeWattmeterRegister(100,[1])
+
             self.lastMinute = int(time.localtime()[4]) 
 
         if self.timeInit:
-            print("Last hour ",self.lastHour,self.timeInit)
             if self.lastHour != int(time.localtime()[3]):
-                print("=====================================")
-                print("Last hour ",self.lastHour)
-                print("=====================================")
+                status = await self.__readWattmeter_data(100,1)
+                
                 async with self.wattmeterInterface as w:
                     await w.writeWattmeterRegister(101,[1])
                 self.lastHour = int(time.localtime()[3])
@@ -118,16 +117,13 @@ class Wattmeter:
             self.lastDay = int(time.localtime()[2])
             self.fileHandler.writeData(self.DAILY_CONSUMPTION, day)
             self.dataLayer.data["D"] =  self.fileHandler.readData(self.DAILY_CONSUMPTION,31)
-            #print("Daily energy: {}".format(self.dataLayer.data["DailyEnergy"]))
             self.dataLayer.data["M"] = self.fileHandler.getMonthlyEnergy(self.DAILY_CONSUMPTION)
 
     async def __readWattmeter_data(self,reg,length):
        
         self.tst += 1
-        
-
         try:
-            #print("stability : {}".format(self.tst/(self.tst+self.err)*100))
+            print("stability : {}".format(self.tst/(self.tst+self.err)*100))
             async with self.wattmeterInterface as w:
                 receiveData =  await w.readWattmeterRegister(reg,length)
                 
