@@ -44,7 +44,7 @@ class Wattmeter:
         curentYear = str(time.localtime()[0])[-2:] 
         self.dataLayer.data['WATTMETER_TIME'] = ("{0:02}.{1:02}.{2}  {3:02}:{4:02}:{5:02}".format(time.localtime()[2],time.localtime()[1],curentYear,time.localtime()[3],time.localtime()[4],time.localtime()[5]))
         #read U,I,P
-        status = await self.__readWattmeter_data(100,1)
+        #status = await self.__readWattmeter_data(100,1)
         status = await self.__readWattmeter_data(1000,12)
         status = await self.__readWattmeter_data(2502,6)
         status = await self.__readWattmeter_data(2802,6)
@@ -61,7 +61,7 @@ class Wattmeter:
         self.controlRelay()
 
         #Check if time-sync puls must be send
-        if (self.lastMinute is not int(time.localtime()[4]))and(self.timeInit == True):
+        if (self.lastMinute != int(time.localtime()[4]))and(self.timeInit == True):
             
             if len(self.dataLayer.data["Pm"])<61:
                 self.dataLayer.data["Pm"].append(self.dataLayer.data['Em']*6)#self.dataLayer.data["P1"])
@@ -75,8 +75,11 @@ class Wattmeter:
             self.lastMinute = int(time.localtime()[4]) 
 
         if self.timeInit:
-            
-            if self.lastHour is not int(time.localtime()[3]):
+            print("Last hour ",self.lastHour,self.timeInit)
+            if self.lastHour != int(time.localtime()[3]):
+                print("=====================================")
+                print("Last hour ",self.lastHour)
+                print("=====================================")
                 async with self.wattmeterInterface as w:
                     await w.writeWattmeterRegister(101,[1])
                 self.lastHour = int(time.localtime()[3])
@@ -104,7 +107,7 @@ class Wattmeter:
                     self.dataLayer.data["Es"][95]= self.dataLayer.data['En']
                     self.dataLayer.data["Es"][96]=  self.dataLayer.data['A']
         
-        if (self.lastDay is not int(time.localtime()[2]))and self.timeInit and self.timeOfset:
+        if (self.lastDay != int(time.localtime()[2]))and self.timeInit and self.timeOfset:
 
             day = {("{0:02}/{1:02}/{2}".format(self.lastMonth,self.lastDay ,str(self.lastYear)[-2:] )) : [self.dataLayer.data["E1dP"] + self.dataLayer.data["E2dP"]+self.dataLayer.data["E3dP"], self.dataLayer.data["E1dN"] + self.dataLayer.data["E2dN"]+self.dataLayer.data["E3dN"]]}
             async with self.wattmeterInterface as w:
@@ -124,7 +127,7 @@ class Wattmeter:
         
 
         try:
-            print("stability : {}".format(self.tst/(self.tst+self.err)*100))
+            #print("stability : {}".format(self.tst/(self.tst+self.err)*100))
             async with self.wattmeterInterface as w:
                 receiveData =  await w.readWattmeterRegister(reg,length)
                 
