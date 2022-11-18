@@ -44,7 +44,6 @@ class Wattmeter:
         curentYear = str(time.localtime()[0])[-2:] 
         self.dataLayer.data['WATTMETER_TIME'] = ("{0:02}.{1:02}.{2}  {3:02}:{4:02}:{5:02}".format(time.localtime()[2],time.localtime()[1],curentYear,time.localtime()[3],time.localtime()[4],time.localtime()[5]))
         #read U,I,P
-        #status = await self.__readWattmeter_data(100,1)
         status = await self.__readWattmeter_data(1000,12)
         status = await self.__readWattmeter_data(2502,6)
         status = await self.__readWattmeter_data(2802,6)
@@ -107,7 +106,7 @@ class Wattmeter:
                     self.dataLayer.data["Es"][96]=  self.dataLayer.data['A']
         
         if (self.lastDay != int(time.localtime()[2]))and self.timeInit and self.timeOfset:
-
+            status = await self.__readWattmeter_data(100,1)
             day = {("{0:02}/{1:02}/{2}".format(self.lastMonth,self.lastDay ,str(self.lastYear)[-2:] )) : [self.dataLayer.data["E1dP"] + self.dataLayer.data["E2dP"]+self.dataLayer.data["E3dP"], self.dataLayer.data["E1dN"] + self.dataLayer.data["E2dN"]+self.dataLayer.data["E3dN"]]}
             async with self.wattmeterInterface as w:
                 await w.writeWattmeterRegister(102,[1])
@@ -123,7 +122,7 @@ class Wattmeter:
        
         self.tst += 1
         try:
-            print("stability : {}".format(self.tst/(self.tst+self.err)*100))
+            #print("stability : {}".format(self.tst/(self.tst+self.err)*100))
             async with self.wattmeterInterface as w:
                 receiveData =  await w.readWattmeterRegister(reg,length)
                 
@@ -207,7 +206,7 @@ class Wattmeter:
             
         except Exception as e:
             self.err += 1
-            print(e, reg)
+            #int(e, reg)
             return "Exception: {}. UART is probably not connected.".format(e)
         
     def negotiationRelay(self):
