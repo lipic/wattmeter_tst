@@ -30,11 +30,13 @@ class Evse():
                 print("evseHandler with ID: {} error: {}".format((i+1),e))
                 #raise Exception("evseHandler with ID: {} error: {}".format((i+1),e))
         current = self.balancingEvseCurrent()
+        print("Fast mode: {}".format(self.setting.config["fastMode"]))
+        print("Available current: {}A".format(current))
         currentContribution = self.currentEvse_Contribution(current)
         for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
             try:
-                if((status[i] == 'SUCCESS_READ') == True):
-                    print("Fast mode: {}".format(self.setting.config["fastMode"]))
+                if(status[i] == 'SUCCESS_READ'):
+                    
                     print("EVSE:{} with current: {}".format(i+1,current))
                     if(self.setting.config["sw,ENABLE CHARGING"] == '1'):
 
