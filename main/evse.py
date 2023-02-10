@@ -34,14 +34,15 @@ class Evse():
         for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
             try:
                 if((status[i] == 'SUCCESS_READ') == True):
-
+                    print("Fast mode: {}".format(self.setting.config["fastMode"]))
+                    print("EVSE:{} with current: {}".format(i+1,current))
                     if(self.setting.config["sw,ENABLE CHARGING"] == '1'):
 
                         if(self.setting.config["sw,WHEN AC IN: CHARGING"] == '1') and self.setting.config["fastMode"] == '0':
                             if self.wattmeter.dataLayer.data["A"] == 1:
                                 if (self.setting.config["sw,ENABLE BALANCING"] == '1'):
                                     current = next(currentContribution)
-                                    print("EVSE:{} with current: {}".format(i+1,current))
+                                    
                                     async with self.evseInterface as e:
                                         await e.writeEvseRegister(1000,[current],i+1)
                                 else:
@@ -53,9 +54,7 @@ class Evse():
                                     await e.writeEvseRegister(1000,[0],i+1)
                         else:
                             if (self.setting.config["sw,ENABLE BALANCING"] == '1'):
-                                #if self.dataLayer.data['NUMBER_OF_EVSE'] > 1:
                                 current = next(currentContribution)
-                                #print("EVSE:{} with current: {}".format(i+1,current))
                                 async with self.evseInterface as e:
                                     await e.writeEvseRegister(1000,[current],i+1)
                             else:
