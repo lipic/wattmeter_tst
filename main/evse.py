@@ -41,7 +41,7 @@ class Evse():
                             if self.wattmeter.dataLayer.data["A"] == 1:
                                 if (self.setting.config["sw,ENABLE BALANCING"] == '1'):
                                     current = next(currentContribution)
-                                    #print("EVSE:{} with current: {}".format(i+1,current))
+                                    print("EVSE:{} with current: {}".format(i+1,current))
                                     async with self.evseInterface as e:
                                         await e.writeEvseRegister(1000,[current],i+1)
                                 else:
