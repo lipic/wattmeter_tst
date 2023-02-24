@@ -30,7 +30,7 @@ class Evse():
                 print("evseHandler with ID: {} error: {}".format((i+1),e))
                 #raise Exception("evseHandler with ID: {} error: {}".format((i+1),e))
         current = self.balancingEvseCurrent()
-        print("Fast mode: {}".format(self.setting.config["fastMode"]))
+        print("Charge mode: {}".format(self.setting.config["chargeMode"]))
         print("Available current: {}A".format(current))
         currentContribution = self.currentEvse_Contribution(current)
         for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
@@ -40,7 +40,7 @@ class Evse():
                     print("EVSE:{} with current: {}".format(i+1,current))
                     if(self.setting.config["sw,ENABLE CHARGING"] == '1'):
 
-                        if(self.setting.config["sw,WHEN AC IN: CHARGING"] == '1') and self.setting.config["fastMode"] == '0':
+                        if(self.setting.config["sw,WHEN AC IN: CHARGING"] == '1') and self.setting.config["chargeMode"] == '0':
                             if self.wattmeter.dataLayer.data["A"] == 1:
                                 if (self.setting.config["sw,ENABLE BALANCING"] == '1'):
                                     current = next(currentContribution)
@@ -150,10 +150,10 @@ class Evse():
         if (1 == self.wattmeter.dataLayer.data["A"]) and (1 == int(self.setting.config['sw,WHEN AC IN: CHARGING'])):
             HDO = True
 
-        if self.setting.config["btn,PHOTOVOLTAIC"] == '1' and HDO==False and self.setting.config["fastMode"] == '0':
+        if self.setting.config["btn,PHOTOVOLTAIC"] == '1' and HDO==False and self.setting.config["chargeMode"] == '0':
             delta = int(self.setting.config["in,PV-GRID-ASSIST-A"]) - int(round(I1/100.0))
 
-        elif self.setting.config["btn,PHOTOVOLTAIC"] == '2'  and HDO==False and self.setting.config["fastMode"] == '0':
+        elif self.setting.config["btn,PHOTOVOLTAIC"] == '2'  and HDO==False and self.setting.config["chargeMode"] == '0':
             delta = int(self.setting.config["in,PV-GRID-ASSIST-A"]) - avgCurrent
             
         else:
