@@ -348,7 +348,7 @@ class fileHandler:
                     lastYear = int(line[2])
 
                 if lastMonth != int(line[0]):
-                    if len(energy)<12:                 
+                    if len(energy)<36:                 
                         energy.append("{}/{}:[{},{}]".format(lastMonth,lastYear,positiveEnergy,negativeEnergy))
                     else:
                         energy = energy[1:]
@@ -362,7 +362,7 @@ class fileHandler:
                 negativeEnergy += int(line[4])
                 collect()                
 
-            if len(energy)<12:                 
+            if len(energy)<36:                 
                 energy.append("{}/{}:[{},{}]".format(lastMonth,lastYear,positiveEnergy,negativeEnergy))
             else:
                 energy = energy[1:]
