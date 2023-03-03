@@ -30,14 +30,14 @@ class Evse():
                 print("evseHandler with ID: {} error: {}".format((i+1),e))
                 #raise Exception("evseHandler with ID: {} error: {}".format((i+1),e))
         current = self.balancingEvseCurrent()
-        print("Charge mode: {}".format(self.setting.config["chargeMode"]))
-        print("Available current: {}A".format(current))
+        #print("Charge mode: {}".format(self.setting.config["chargeMode"]))
+        #print("Available current: {}A".format(current))
         currentContribution = self.currentEvse_Contribution(current)
         for i in range(0,self.dataLayer.data['NUMBER_OF_EVSE']):
             try:
                 if(status[i] == 'SUCCESS_READ'):
                     
-                    print("EVSE:{} with current: {}".format(i+1,current))
+                    #print("EVSE:{} with current: {}".format(i+1,current))
                     if(self.setting.config["sw,ENABLE CHARGING"] == '1'):
 
                         if(self.setting.config["sw,WHEN AC IN: CHARGING"] == '1') and self.setting.config["chargeMode"] == '0':
