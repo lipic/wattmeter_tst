@@ -64,7 +64,7 @@ class TaskHandler:
             
     async def timeHandler(self):
         while True:
-            if self.wifiManager.isConnected() and self.wattmeter.timeInit == False:
+            if self.wifiManager.isConnected() and self.wattmeter.time_init == False:
                 try:
                     print("Setting time")
                     settime()
@@ -74,7 +74,7 @@ class TaskHandler:
                     tampon2=tampon1+int(self.setting.config["in,TIME-ZONE"])*3600
                     (year, month, mday, hour, minute, second, weekday, yearday)=utime.localtime(tampon2)
                     rtc.datetime((year, month, mday, 0, hour, minute, second, 0))
-                    self.wattmeter.timeInit = True
+                    self.wattmeter.time_init = True
                     self.ledErrorHandler.removeState(TIME_SYNC_ERR)
                     self.errors &= ~TIME_SYNC_ERR
                 except Exception as e:
@@ -123,7 +123,7 @@ class TaskHandler:
     async def interfaceHandler(self):
         while True:
             try:
-                await self.evse.evseHandler()
+                await self.evse.evse_handler()
                 self.ledErrorHandler.removeState(EVSE_ERR)
                 self.errors &= ~EVSE_ERR
             except Exception as e:
@@ -132,7 +132,7 @@ class TaskHandler:
                 print("EVSE error: {}".format(e))
             self.memFree()
             try:
-                await self.wattmeter.wattmeterHandler()
+                await self.wattmeter.wattmeter_handler()
                 self.ledErrorHandler.removeState(WATTMETER_ERR)
                 self.errors &= ~WATTMETER_ERR
             except Exception as e:
@@ -158,7 +158,7 @@ class TaskHandler:
         loop.create_task(self.interfaceHandler())
         loop.create_task(self.ledError())
         loop.create_task(self.ledWifi())
-        loop.create_task(self.webServerApp.webServerRun())
+        loop.create_task(self.webServerApp.webServer_run())
         if self.setting.config['sw,MODBUS-TCP'] == '1':
             loop.create_task(self.uModBusTCP.run(debug=True))
         loop.run_forever()
