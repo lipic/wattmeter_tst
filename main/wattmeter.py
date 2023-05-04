@@ -53,12 +53,12 @@ class Wattmeter:
         status = await self.__read_wattmeter_data(200, 1)
 
         if self.setting.config['sw,P-E15-GUARD'] == '1':
-            max_p: int = int(self.setting.config['in,MAX-P-KW'])
-            max_e15: int = int(self.setting.config['in,MAX-E15-KWH'])
-            p1: int = self.data_layer.data['P1']
-            p2: int = self.data_layer.data['P2']
-            p3: int = self.data_layer.data['P3']
-            e15: list = self.data_layer.data["Pm"][-15:] if len(self.data_layer.data["Pm"]) > 15 else \
+            max_p = int(self.setting.config['in,MAX-P-KW'])
+            max_e15 = int(self.setting.config['in,MAX-E15-KWH'])
+            p1 = self.data_layer.data['P1']
+            p2 = self.data_layer.data['P2']
+            p3 = self.data_layer.data['P3']
+            e15 = self.data_layer.data["Pm"][-15:] if len(self.data_layer.data["Pm"]) > 15 else \
                 self.data_layer.data["Pm"]
             energy_energy: int = 0
             for minute_energy in e15:
