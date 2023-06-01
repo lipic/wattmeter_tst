@@ -238,7 +238,7 @@ class Wattmeter:
 
         if self.e15_p_lock is False:
             max_p: int = int(self.setting.config['in,MAX-P-KW'])*1000
-            max_e15: int = int(int(self.setting.config['in,MAX-E15-KWH']) * 0.1)
+            max_e15: int = int(int(self.setting.config['in,MAX-E15-KWH']) * 100)
             p1: int = self.data_layer.data['P1']
             p2: int = self.data_layer.data['P2']
             p3: int = self.data_layer.data['P3']
@@ -249,8 +249,8 @@ class Wattmeter:
             for minute_energy in e15:
                 total_energy += minute_energy
 
-            self.logger.debug("total_energy={}Wh; max_e15={}kWh; max_p={}W; sum_p= {}W".format(total_energy, max_e15, max_p, p1 + p2 + p3))
-            if (total_energy > max_e15 * 1000) or (max_p < p1 + p2 + p3):
+            self.logger.debug("total_energy={}Wh; max_e15={}Wh; max_p={}W; sum_p= {}W".format(total_energy, max_e15, max_p, p1 + p2 + p3))
+            if (total_energy > max_e15) or (max_p < p1 + p2 + p3):
                 self.relay.on()
                 self.data_layer.data["RELAY"] = 1
                 self.e15_p_lock = True
