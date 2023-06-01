@@ -22,6 +22,9 @@ class Wattmeter:
         self.test = 0
         self.start_up_time = 0
         self.setting = setting
+        self.e15_p_lock_counter = 0
+        self.e15_p_lock = False
+        self.minute_energy: list = []
         self.data_layer.data['ID'] = self.setting.config['ID']
 
     async def wattmeter_handler(self):
@@ -36,47 +39,28 @@ class Wattmeter:
             self.time_offset = True
 
         self.data_layer.data['BREAKER'] = self.setting.config['in,MAX-CURRENT-FROM-GRID-A']
-        self.data_layer.data['RUN_TIME'] = time.time() - self.start_up_time
+        self.data_layer.data['RUN_TIME'] = int(time.time() - self.start_up_time)
         current_year = str(time.localtime()[0])[-2:]
         self.data_layer.data['WATTMETER_TIME'] = (
             "{0:02}.{1:02}.{2}  {3:02}:{4:02}:{5:02}".format(time.localtime()[2], time.localtime()[1], current_year,
                                                              time.localtime()[3], time.localtime()[4],
                                                              time.localtime()[5]))
 
-        status = await self.__read_wattmeter_data(1000, 12)
-        status = await self.__read_wattmeter_data(2502, 6)
-        status = await self.__read_wattmeter_data(2802, 6)
-        status = await self.__read_wattmeter_data(3102, 12)
-        status = await self.__read_wattmeter_data(2902, 6)
-        status = await self.__read_wattmeter_data(1015, 3)
-        status = await self.__read_wattmeter_data(4000, 12)
-        status = await self.__read_wattmeter_data(200, 1)
+        await self.__read_wattmeter_data(1000, 12)
+        await self.__read_wattmeter_data(2502, 6)
+        await self.__read_wattmeter_data(2802, 6)
+        await self.__read_wattmeter_data(3102, 12)
+        await self.__read_wattmeter_data(2902, 6)
+        await self.__read_wattmeter_data(1015, 3)
+        await self.__read_wattmeter_data(4000, 12)
+        await self.__read_wattmeter_data(200, 1)
 
         if self.setting.config['sw,P-E15-GUARD'] == '1':
-            max_p = int(self.setting.config['in,MAX-P-KW'])
-            max_e15 = int(self.setting.config['in,MAX-E15-KWH'])
-            p1 = self.data_layer.data['P1']
-            p2 = self.data_layer.data['P2']
-            p3 = self.data_layer.data['P3']
-            e15 = self.data_layer.data["Pm"][-15:] if len(self.data_layer.data["Pm"]) > 15 else \
-                self.data_layer.data["Pm"]
-            energy_energy: int = 0
-            for minute_energy in e15:
-                energy_energy += minute_energy
-            if energy_energy > max_e15 * 1000:
-                self.relay.on()
-                self.data_layer.data["RELAY"] = 1
-            elif max_p < p1 or max_p < p2 or max_p < p3:
-                self.relay.on()
-                self.data_layer.data["RELAY"] = 1
-            else:
-                self.relay.off()
-                self.data_layer.data["RELAY"] = 0
-
+            self.e15_p_protection()
         else:
             self.control_relay()
 
-        if (self.last_minute != int(time.localtime()[4])) and (self.time_init == True):
+        if self.last_minute != int(time.localtime()[4]):
 
             if len(self.data_layer.data["Pm"]) < 61:
                 self.data_layer.data["Pm"].append(self.data_layer.data['Em'] * 6)
@@ -89,6 +73,12 @@ class Wattmeter:
                 await w.writeWattmeterRegister(100, [1])
 
             self.last_minute = int(time.localtime()[4])
+
+            if self.last_minute % 15 == 0:
+                self.e15_p_lock = False
+                self.minute_energy.clear()
+
+            self.minute_energy.append(self.data_layer.data['Em'] * 6)
 
         if self.time_init:
             if self.last_hour != int(time.localtime()[3]):
@@ -234,6 +224,36 @@ class Wattmeter:
 
         except Exception as e:
             return "Exception: {}. UART is probably not connected.".format(e)
+
+    def e15_p_protection(self):
+
+        if self.e15_p_lock is False:
+            max_p: int = int(self.setting.config['in,MAX-P-KW'])*1000
+            max_e15: int = int(int(self.setting.config['in,MAX-E15-KWH']) * 0.1)
+            p1: int = self.data_layer.data['P1']
+            p2: int = self.data_layer.data['P2']
+            p3: int = self.data_layer.data['P3']
+
+            e15: list = self.minute_energy
+            total_energy: int = 0
+
+            for minute_energy in e15:
+                total_energy += minute_energy
+
+            print("Total energy= {}Wh, max_e15= {}kWh, max_p= {}W, sum_p= {}W".format(total_energy, max_e15, max_p, p1 + p2 + p3))
+            if (total_energy > max_e15 * 1000) or (max_p < p1 + p2 + p3):
+                self.relay.on()
+                self.data_layer.data["RELAY"] = 1
+                self.e15_p_lock = True
+            else:
+                self.relay.off()
+                self.data_layer.data["RELAY"] = 0
+
+        else:
+            self.e15_p_lock_counter += 1
+            if self.e15_p_lock_counter > 300:  # 420s -> 7 minute
+                self.e15_p_lock = False
+                self.e15_p_lock_counter = 0
 
     def negotiation_relay(self):
         if self.relay.value():
