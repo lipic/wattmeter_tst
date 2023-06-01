@@ -2,6 +2,7 @@ import ujson as json
 import time
 from machine import Pin, UART
 from gc import collect, mem_free
+import ulogging
 
 
 class Wattmeter:
@@ -26,6 +27,13 @@ class Wattmeter:
         self.e15_p_lock = False
         self.minute_energy: list = []
         self.data_layer.data['ID'] = self.setting.config['ID']
+
+        self.logger = ulogging.getLogger("Wattmeter")
+
+        if int(self.setting.config['sw,TESTING SOFTWARE']) == 1:
+            self.logger.setLevel(ulogging.DEBUG)
+        else:
+            self.logger.setLevel(ulogging.INFO)
 
     async def wattmeter_handler(self):
         if (self.time_offset is False) and self.time_init:
@@ -77,6 +85,7 @@ class Wattmeter:
             if self.last_minute % 15 == 0:
                 self.e15_p_lock = False
                 self.minute_energy.clear()
+                self.logger.debug("reset e15_p_lock and clear minute_energy={}".format(self.minute_energy))
 
             self.minute_energy.append(self.data_layer.data['Em'] * 6)
 
@@ -240,7 +249,7 @@ class Wattmeter:
             for minute_energy in e15:
                 total_energy += minute_energy
 
-            print("Total energy= {}Wh, max_e15= {}kWh, max_p= {}W, sum_p= {}W".format(total_energy, max_e15, max_p, p1 + p2 + p3))
+            self.logger.debug("total_energy={}Wh; max_e15={}kWh; max_p={}W; sum_p= {}W".format(total_energy, max_e15, max_p, p1 + p2 + p3))
             if (total_energy > max_e15 * 1000) or (max_p < p1 + p2 + p3):
                 self.relay.on()
                 self.data_layer.data["RELAY"] = 1
@@ -250,6 +259,7 @@ class Wattmeter:
                 self.data_layer.data["RELAY"] = 0
 
         else:
+            self.logger.debug("e15_p_lock_counter={}".format(self.e15_p_lock_counter))
             self.e15_p_lock_counter += 1
             if self.e15_p_lock_counter > 300:  # 420s -> 7 minute
                 self.e15_p_lock = False
