@@ -25,7 +25,7 @@ class Wattmeter:
         self.setting = setting
         self.e15_p_lock_counter = 0
         self.e15_p_lock = False
-        self.minute_energy: list = []
+        self.minute_energy = []
         self.data_layer.data['ID'] = self.setting.config['ID']
 
         self.logger = ulogging.getLogger("Wattmeter")
@@ -237,14 +237,14 @@ class Wattmeter:
     def e15_p_protection(self):
 
         if self.e15_p_lock is False:
-            max_p: int = int(self.setting.config['in,MAX-P-KW'])*1000
-            max_e15: int = int(int(self.setting.config['in,MAX-E15-KWH']) * 100)
-            p1: int = self.data_layer.data['P1']
-            p2: int = self.data_layer.data['P2']
-            p3: int = self.data_layer.data['P3']
+            max_p = int(self.setting.config['in,MAX-P-KW'])*1000
+            max_e15 = int(int(self.setting.config['in,MAX-E15-KWH']) * 100)
+            p1 = self.data_layer.data['P1']
+            p2 = self.data_layer.data['P2']
+            p3 = self.data_layer.data['P3']
 
-            e15: list = self.minute_energy
-            total_energy: int = 0
+            e15 = self.minute_energy
+            total_energy = 0
 
             for minute_energy in e15:
                 total_energy += minute_energy
