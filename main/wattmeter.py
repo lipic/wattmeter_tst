@@ -87,7 +87,7 @@ class Wattmeter:
                 self.minute_energy.clear()
                 self.logger.debug("reset e15_p_lock and clear minute_energy={}".format(self.minute_energy))
 
-            self.minute_energy.append(self.data_layer.data['Em'] * 6)
+            self.minute_energy.append(self.data_layer.data['Em'])
 
         if self.time_init:
             if self.last_hour != int(time.localtime()[3]):
@@ -242,15 +242,15 @@ class Wattmeter:
             p1 = self.data_layer.data['P1']
             p2 = self.data_layer.data['P2']
             p3 = self.data_layer.data['P3']
-
+            sum_p = p1 + p2 + p3
             e15 = self.minute_energy
             total_energy = 0
 
             for minute_energy in e15:
                 total_energy += minute_energy
 
-            self.logger.debug("total_energy={}Wh; max_e15={}Wh; max_p={}W; sum_p= {}W".format(total_energy, max_e15, max_p, p1 + p2 + p3))
-            if (total_energy > max_e15) or (max_p < p1 + p2 + p3):
+            self.logger.debug("total_energy={}Wh; max_e15={}Wh; max_p={}W; sum_p= {}W".format(total_energy, max_e15, max_p, sum_p))
+            if (total_energy > max_e15) or (max_p < sum_p):
                 self.logger.debug("Relay off")
                 self.relay.off()
                 self.data_layer.data["RELAY"] = 0
@@ -263,6 +263,7 @@ class Wattmeter:
         else:
             self.logger.debug("e15_p_lock_counter={}".format(self.e15_p_lock_counter))
             self.e15_p_lock_counter += 1
+            self.relay.off()
             if self.e15_p_lock_counter > 300:  # 450s -> 7 minute
                 self.e15_p_lock = False
                 self.e15_p_lock_counter = 0
