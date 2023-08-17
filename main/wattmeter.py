@@ -251,7 +251,7 @@ class Wattmeter:
                 total_energy += minute_energy
 
             self.logger.debug("total_energy={}Wh; max_e15={}Wh; max_p={}W; sum_p= {}W".format(total_energy, max_e15, max_p, sum_p))
-            if (abs(total_energy) > max_e15) or (max_p < abs(sum_p)):
+            if (total_energy < (-max_e15)) or (sum_p < -max_p):
                 self.logger.debug("Relay off")
                 self.relay.off()
                 self.data_layer.data["RELAY"] = 0
