@@ -242,7 +242,9 @@ class Wattmeter:
             p1 = self.data_layer.data['P1']
             p2 = self.data_layer.data['P2']
             p3 = self.data_layer.data['P3']
-            sum_p = p1 + p2 + p3
+            self.logger.debug(f"p1: {p1}W, p2: {p2}W, p3: {p3}W")
+            sum_p = sum([p1, p2, p3])
+
             e15 = self.minute_energy
             total_energy = 0
 
