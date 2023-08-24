@@ -87,7 +87,7 @@ class Wattmeter:
                 self.minute_energy.clear()
                 self.logger.debug("reset e15_p_lock and clear minute_energy={}".format(self.minute_energy))
 
-            self.minute_energy.append(self.data_layer.data['Em'])
+            self.minute_energy.append(int(self.data_layer.data['Em']/10))
 
         if self.time_init:
             if self.last_hour != int(time.localtime()[3]):
@@ -255,7 +255,7 @@ class Wattmeter:
                 self.logger.debug("Relay off")
                 self.relay.off()
                 self.data_layer.data["RELAY"] = 0
-                # self.e15_p_lock = True
+                self.e15_p_lock = True
             else:
                 self.logger.debug("Relay on")
                 self.relay.on()
