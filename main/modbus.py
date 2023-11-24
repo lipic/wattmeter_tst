@@ -1,19 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: UTF-8 -*-
-
-"""
-modbus script
-"""
-
-# system packages
 import time
 
-# custom packages
 from umodbus.serial import Serial
 from umodbus.tcp import TCPServer
 from umodbus import const as ModbusConst
 
-# typing not natively supported on MicroPython
 from umodbus.typing import List
 from umodbus.typing import Union
 

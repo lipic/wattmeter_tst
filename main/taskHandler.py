@@ -32,8 +32,8 @@ class TaskHandler:
         self.webServerApp = webServerApp.WebServerApp(wifi, self.wattmeter, self.evse, wattInterface, evseInterface, self.setting)  # Create instance of Webserver App
         try:
             from main.modbus_tcp import ModbusTCPServer
-            self.modbus_tcp = ModbusTCPServer(wattmeter_data=self.wattmeter.data_layer.data, port=502)
-        except:
+            self.modbus_tcp = ModbusTCPServer(wattmeter_data=self.wattmeter.data_layer.data, setting_data=self.setting.config, port=502)
+        except Exception as e:
             import modbusTcp
             self.modbus_tcp = modbusTcp.Server(wattInterface, evseInterface)
         self.settingAfterNewConnection = False
@@ -123,7 +123,7 @@ class TaskHandler:
     async def interface_handler(self):
         while True:
             try:
-                await self.evse.evse_handler()
+                #await self.evse.evse_handler()
                 self.ledErrorHandler.removeState(EVSE_ERR)
                 self.errors &= ~EVSE_ERR
             except Exception as e:

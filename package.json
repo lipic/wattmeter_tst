@@ -1,9 +1,0 @@
-{
-  "urls": [
-    [".", "github:org/lipic/wattmeter_tst"]
-  ],
-  "deps": [
-
-  ],
-  "version": "2.04"
-}

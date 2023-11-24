@@ -31,10 +31,6 @@ class Evse():
             except Exception as e:
                 self.logger.info("evse_handler with ID: {} has error: {}".format((i + 1), e))
         current = self.balancingEvseCurrent()
-
-        self.logger.debug("Charge mode: {}".format(self.setting.config["chargeMode"]))
-        self.logger.debug("Available current: {} A".format(current))
-
         current_contribution = self.current_evse_contribution(current)
         for i in range(0, self.data_layer.data['NUMBER_OF_EVSE']):
             try:
@@ -42,8 +38,7 @@ class Evse():
 
                     self.logger.debug("EVSE:{} with current: {}".format(i + 1, current))
                     if self.setting.config["sw,ENABLE CHARGING"] == '1':
-                        if (self.setting.config["sw,WHEN AC IN: CHARGING"] == '1') and self.setting.config[
-                            "chargeMode"] == '0':
+                        if (self.setting.config["sw,WHEN AC IN: CHARGING"] == '1') and self.setting.config["chargeMode"] == '0':
                             if self.wattmeter.data_layer.data["A"] == 1:
                                 if self.setting.config["sw,ENABLE BALANCING"] == '1':
                                     current = next(current_contribution)
