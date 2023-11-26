@@ -36,6 +36,7 @@ class TaskHandler:
         except Exception as e:
             import modbusTcp
             self.modbus_tcp = modbusTcp.Server(wattInterface, evseInterface)
+        collect()
         self.settingAfterNewConnection = False
         self.wdt = WDT(timeout=60000)
         self.wifiManager = wifi
