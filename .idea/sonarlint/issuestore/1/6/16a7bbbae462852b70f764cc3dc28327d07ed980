@@ -1,0 +1,21 @@
+
+opython:S116)"SRename this field "wifiManager" to match the regular expression ^[_a-z][_a-z0-9]*$.(¶­š§ıÿÿÿÿ
+ppython:S116 "TRename this field "webServerApp" to match the regular expression ^[_a-z][_a-z0-9]*$.(°õ£ôúÿÿÿÿ
+lpython:S116+"VRename this field "ledWifiHandler" to match the regular expression ^[_a-z][_a-z0-9]*$.(€¿£P
+xpython:S116'"aRename this field "settingAfterNewConnection" to match the regular expression ^[_a-z][_a-z0-9]*$.(½ä˜…
+npython:S116*"WRename this field "ledErrorHandler" to match the regular expression ^[_a-z][_a-z0-9]*$.(æ—èÕ
+tpython:S116."XRename this field "tryOfConnections" to match the regular expression ^[_a-z][_a-z0-9]*$.(ôûÜşÿÿÿÿ
+jpython:S116,"NRename this field "ledRun" to match the regular expression ^[_a-z][_a-z0-9]*$.(–¬Æ™ıÿÿÿÿ
+hpython:S1160"QRename this field "apTimeout" to match the regular expression ^[_a-z][_a-z0-9]*$.(½£¬
+upython:S117"^Rename this local variable "evseInterface" to match the regular expression ^[_a-z][a-z0-9_]*$.(ã€­»
+zpython:S117"^Rename this local variable "wattInterface" to match the regular expression ^[_a-z][a-z0-9_]*$.(±ß÷Šúÿÿÿÿ
+Bpython:S1481$"%Remove the unused local variable "e".(¼–¯¸ÿÿÿÿÿ
+gpython:S1002"KRename method "memFree" to match the regular expression ^[a-z_][a-z0-9_]*$.(–—ûşÿÿÿÿ
+Apython:S14813"*Remove the unused local variable "before".(ª¿‚7
+Apython:S14815")Remove the unused local variable "after".(•ıê»
+apython:S1008"KRename method "ledWifi" to match the regular expression ^[a-z_][a-z0-9_]*$.(–î¸
+hpython:S100="LRename method "ledError" to match the regular expression ^[a-z_][a-z0-9_]*$.(ƒÎüÚûÿÿÿÿ
+fpython:S100B"ORename method "timeHandler" to match the regular expression ^[a-z_][a-z0-9_]*$.(º´ñ÷
+kpython:S100Y"ORename method "wifiHandler" to match the regular expression ^[a-z_][a-z0-9_]*$.(Ùö¶Ñøÿÿÿÿ
+qpython:S3776Y"TRefactor this function to reduce its Cognitive Complexity from 27 to the 15 allowed.(Ùö¶Ñøÿÿÿÿ
+mpython:S100˜"VRename method "mainTaskHandlerRun" to match the regular expression ^[a-z_][a-z0-9_]*$.(ÛüÃq
