@@ -15,7 +15,6 @@ class ModbusTCPServer:
         self.server = None
 
         self.client = ModbusTCP()
-        is_bound = False
         is_bound = self.client.get_bound_status()
         if not is_bound:
             self.client.bind(local_ip=ip, local_port=port)
@@ -27,7 +26,7 @@ class ModbusTCPServer:
         self.client.setup_registers(registers=register_definitions, use_default_vals=True)
         float_value = float(setting_data["txt,ACTUAL SW VERSION"])
         self.fw_version = int("{}E".format(int(float_value * 100)), 16)
-        serial_raw: list = ["{:02x}".format(ord("-"))]
+        serial_raw: list = ["{:02x}".format(ord("0"))]
         for i in setting_data["ID"]:
             serial_raw.append("{:02x}".format(ord(i)))
         self.serial_number: list = list()
