@@ -74,7 +74,7 @@ class ModbusTCPServer:
         self.client.set_hreg(20, [p2*10 & 0xFFFF, (p2 >> 16) & 0xFFFF])
         p3: int = self.data['P3'] if self.data['P3'] < 32769 else self.data['P3'] - 65535
         self.client.set_hreg(22, [p3*10 & 0xFFFF, (p3 >> 16) & 0xFFFF])
-        p_sum = p1 + p2 + p3
+        p_sum = (p1 + p2 + p3)*10
         self.client.set_hreg(40, [p_sum & 0xFFFF, (p_sum >> 16) & 0xFFFF])
         self.client.set_hreg(51, [500])
         e_positive: int = int((self.data['E1tP'] + self.data['E2tP'] + self.data['E3tP'])/10)
