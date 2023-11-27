@@ -25,7 +25,7 @@ class ModbusTCPServer:
         collect()
         self.client.setup_registers(registers=register_definitions, use_default_vals=True)
         float_value = float(setting_data["txt,ACTUAL SW VERSION"])
-        self.fw_version = int("{}E".format(int(float_value * 100)), 16)
+        self.fw_version = int("{}".format(int(float_value * 1000)), 16)
         serial_raw: list = ["{:02x}".format(ord("0"))]
         for i in setting_data["ID"]:
             serial_raw.append("{:02x}".format(ord(i)))
