@@ -52,7 +52,7 @@ class ModbusTCPServer:
             if self.wifi.isConnected():
                 self.client.process()
 
-            await asyncio.sleep(0.3)
+            await asyncio.sleep(0.4)
 
     def set_static_registers(self):
         self.client.set_hreg(11, [1648])
