@@ -7,17 +7,23 @@ from gc import collect
 
 class ModbusTCPServer:
 
-    def __init__(self, wattmeter_data, setting_data, port: int = 502, ip: str = '0.0.0.0', debug: bool = False) -> None:
+    def __init__(self, wattmeter_data, setting_data, wifi, port: int = 502, ip: str = '0.0.0.0', debug: bool = False) -> None:
         self.port = port
+        self.wifi = wifi
         self.data = wattmeter_data
         self.ip = ip
         self.debug = debug
         self.server = None
-
-        self.client = ModbusTCP()
-        is_bound = self.client.get_bound_status()
-        if not is_bound:
-            self.client.bind(local_ip=ip, local_port=port)
+        try:
+            self.client = ModbusTCP()
+            is_bound = self.client.get_bound_status()
+            if not is_bound:
+                self.client.bind(local_ip=ip, local_port=port)
+        except OSError as e:
+            import errno
+            if e.args[0] == errno.EADDRINUSE:
+                from machine import reset
+                reset()
 
         collect()
         with open('main/registers.json', 'r') as file:
@@ -31,23 +37,22 @@ class ModbusTCPServer:
             serial_raw.append("{:02x}".format(ord(i)))
         self.serial_number: list = list()
         for i in range(0, 6, 2):
-            self.serial_number.append("0x{}{}".format(serial_raw[i],serial_raw[i+1]))
+            self.serial_number.append("0x{}{}".format(serial_raw[i], serial_raw[i+1]))
         self.logger = ulogging.getLogger(__name__)
         if debug:
             self.logger.setLevel(ulogging.DEBUG)
         else:
             self.logger.setLevel(ulogging.INFO)
-        self.logger.info("**********************************************************")
-        self.logger.info("****** SET MODBUS TCP WITH PORT: {}; IP: {} *****".format(port, ip))
-        self.logger.info("**********************************************************")
 
     async def run(self) -> None:
         self.set_static_registers()
 
         while True:
             self.set_dynamic_registers()
-            self.client.process()
-            await asyncio.sleep(0.2)
+            if self.wifi.isConnected():
+                self.client.process()
+
+            await asyncio.sleep(0.3)
 
     def set_static_registers(self):
         self.client.set_hreg(11, [1648])

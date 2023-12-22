@@ -32,8 +32,9 @@ class TaskHandler:
         self.webServerApp = webServerApp.WebServerApp(wifi, self.wattmeter, self.evse, wattInterface, evseInterface, self.setting)  # Create instance of Webserver App
         try:
             from main.modbus_tcp import ModbusTCPServer
-            self.modbus_tcp = ModbusTCPServer(wattmeter_data=self.wattmeter.data_layer.data, setting_data=self.setting.config, port=502)
+            self.modbus_tcp = ModbusTCPServer(wattmeter_data=self.wattmeter.data_layer.data, setting_data=self.setting.config, wifi=wifi, port=502)
         except Exception as e:
+            print(e)
             import modbusTcp
             self.modbus_tcp = modbusTcp.Server(wattInterface, evseInterface)
         collect()

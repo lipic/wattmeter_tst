@@ -42,7 +42,7 @@ class Config:
         self.config['inp,EVSE9'] = '6'
         self.config['inp,EVSE10'] = '6'
         self.SETTING_PROFILES = 'setting.dat'
-        self.handle_configure('txt,ACTUAL SW VERSION',self.boot.get_version(""))
+        self.handle_configure('txt,ACTUAL SW VERSION', self.boot.get_version(""))
 
 
     def getConfig(self):
