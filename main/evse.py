@@ -1,5 +1,7 @@
 import json
+from gc import collect
 import ulogging
+collect()
 
 
 class Evse():

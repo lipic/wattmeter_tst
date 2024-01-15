@@ -1,6 +1,9 @@
 import bootloader
 from collections import OrderedDict
 import os
+from gc import collect
+collect()
+
 
 class Config: 
     

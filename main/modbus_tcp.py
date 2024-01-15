@@ -3,6 +3,7 @@ import ulogging
 from umodbus.modbus import ModbusTCP
 import ujson as json
 from gc import collect
+collect()
 
 
 class ModbusTCPServer:

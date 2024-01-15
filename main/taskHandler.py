@@ -10,6 +10,7 @@ from main import webServerApp
 from main import wattmeter
 from main import evse
 from main import __config__
+collect()
 
 EVSE_ERR = 1
 WATTMETER_ERR = 2
@@ -34,7 +35,6 @@ class TaskHandler:
             from main.modbus_tcp import ModbusTCPServer
             self.modbus_tcp = ModbusTCPServer(wattmeter_data=self.wattmeter.data_layer.data, setting_data=self.setting.config, wifi=wifi, port=502)
         except Exception as e:
-            print(e)
             import modbusTcp
             self.modbus_tcp = modbusTcp.Server(wattInterface, evseInterface)
         collect()
@@ -48,12 +48,6 @@ class TaskHandler:
         self.tryOfConnections = 0
         self.wifiManager.turnONAp()  # povolit Access point
         self.apTimeout = 600
-
-    def memFree(self):
-        before = mem_free()
-        collect()
-        after = mem_free()
-        # print("Memory before: {} & After: {}".format(before,after))
 
     async def ledWifi(self):
         while True:
@@ -86,7 +80,7 @@ class TaskHandler:
                     print("Error during time setting: {}".format(e))
 
             await asyncio.sleep(10)
-            self.memFree()
+            collect()
 
     async def wifiHandler(self):
         while True:
@@ -119,7 +113,7 @@ class TaskHandler:
                 self.ledErrorHandler.addState(WIFI_HANDLER_ERR)
                 self.errors |= WIFI_HANDLER_ERR
                 print("wifiHandler exception : {}".format(e))
-            self.memFree()
+            collect()
             await asyncio.sleep(2)
 
     async def interface_handler(self):
@@ -132,7 +126,7 @@ class TaskHandler:
                 self.ledErrorHandler.addState(EVSE_ERR)
                 self.errors |= EVSE_ERR
                 print("EVSE error: {}".format(e))
-            self.memFree()
+            collect()
             try:
                 await self.wattmeter.wattmeter_handler()
                 self.ledErrorHandler.removeState(WATTMETER_ERR)
@@ -141,14 +135,14 @@ class TaskHandler:
                 self.ledErrorHandler.addState(WATTMETER_ERR)
                 self.errors |= WATTMETER_ERR
                 print("WATTMETER error: {}".format(e))
-            self.memFree()
+            collect()
             await asyncio.sleep(1.5)
 
     async def system_handler(self):
         while True:
             self.setting.config['ERRORS'] = (str)(self.errors)
             self.wdt.feed()
-            self.memFree()
+            collect()
             await asyncio.sleep(1)
 
     def mainTaskHandlerRun(self):

@@ -2,9 +2,9 @@ import picoweb
 from machine import reset, RTC
 from time import time
 import ujson as json
-from gc import collect, mem_free
+from gc import collect
 import uasyncio as asyncio
-
+collect()
 
 class WebServerApp:
     def __init__(self, wlan, wattmeter, evse, watt_io, evse_io, setting):

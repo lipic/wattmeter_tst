@@ -1,9 +1,9 @@
 import ujson as json
 import time
 from machine import Pin, UART
-from gc import collect, mem_free
+from gc import collect
 import ulogging
-
+collect()
 
 class Wattmeter:
 
