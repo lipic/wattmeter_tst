@@ -15,16 +15,8 @@ class ModbusTCPServer:
         self.ip = ip
         self.debug = debug
         self.server = None
-        try:
-            self.client = ModbusTCP()
-            is_bound = self.client.get_bound_status()
-            if not is_bound:
-                self.client.bind(local_ip=ip, local_port=port)
-        except OSError as e:
-            import errno
-            if e.args[0] == errno.EADDRINUSE:
-                from machine import reset
-                reset()
+
+        self.init_modbus_tcp()
 
         collect()
         with open('main/registers.json', 'r') as file:
@@ -32,7 +24,9 @@ class ModbusTCPServer:
         collect()
         self.client.setup_registers(registers=register_definitions, use_default_vals=True)
         float_value = float(setting_data["txt,ACTUAL SW VERSION"])
-        self.fw_version = int("{}".format(int(float_value * 1000)), 16)
+        self.fw_version = "{}".format(int(float_value * 1000))
+        last_two_char: str = hex(int(self.fw_version[2:], 10)).replace("0x","")
+        self.fw_version = (int(f"0x{int(float_value * 10)}{last_two_char}"))
         serial_raw: list = ["{:02x}".format(ord("0"))]
         for i in setting_data["ID"]:
             serial_raw.append("{:02x}".format(ord(i)))
@@ -45,13 +39,31 @@ class ModbusTCPServer:
         else:
             self.logger.setLevel(ulogging.INFO)
 
+    def init_modbus_tcp(self):
+        try:
+            self.client = ModbusTCP()
+            is_bound = self.client.get_bound_status()
+            if not is_bound:
+                self.client.bind(local_ip=self.ip, local_port=self.port)
+        except OSError as e:
+            import errno
+            if e.args[0] == errno.EADDRINUSE:
+                from machine import reset
+                reset()
+            else:
+                self.logger.error(e)
+
     async def run(self) -> None:
         self.set_static_registers()
 
         while True:
             self.set_dynamic_registers()
             if self.wifi.isConnected():
-                self.client.process()
+                try:
+                    self.client.process()
+                except Exception as e:
+                    self.logger.error(e)
+                    self.init_modbus_tcp()
 
             await asyncio.sleep(0.4)
 
