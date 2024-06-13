@@ -178,6 +178,9 @@ class Evse():
                 self.__request_current = self.__request_current + delta
             else:
                 self.__request_current = self.__request_current - 1
+                if self.__request_current < 6:
+                    self.regulation_lock = True
+                    self.lock_counter = 1
             self.__cnt_current = 0
 
         elif self.__regulation_delay > 0:
@@ -204,8 +207,11 @@ class Evse():
 
         if self.__regulation_delay > 0:
             self.__regulation_delay = self.__regulation_delay + 1
-        if self.__regulation_delay > 60:
+        if self.__regulation_delay > 60 and self.setting.config["btn,PHOTOVOLTAIC"] == '0':
             self.__regulation_delay = 0
+        elif self.__regulation_delay > 10:
+            self.__regulation_delay = 0
+
         sum = 0
         for i in range(0, self.data_layer.data['NUMBER_OF_EVSE']):
             sum += int(self.setting.config["inp,EVSE{}".format(i + 1)])
