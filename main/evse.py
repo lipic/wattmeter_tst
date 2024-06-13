@@ -168,23 +168,25 @@ class Evse():
             self.__request_current = 0
             self.__regulation_delay = 1
 
-        elif self.__cnt_current >= 2:
-            if delta < 0:
-                self.__request_current = self.__request_current + delta
-                self.regulation_lock = True
+        if delta < 0 and self.__cnt_current % 2 == 0:
+            self.__request_current = self.__request_current + delta
+            self.regulation_lock = True
+            if '0' == self.setting.config["btn,PHOTOVOLTAIC"]:
                 self.lock_counter = 1
+            self.__cnt_current = 0
 
-            elif self.__regulation_delay > 0:
-                self.__request_current = 0
+        elif self.__regulation_delay > 0:
+            self.__request_current = 0
+            self.__cnt_current = 0
 
-            elif not self.regulation_lock:
-                if delta >= 6 and self.check_if_ev_is_connected():
-                    self.__request_current = self.__request_current + 1
-                elif self.check_if_ev_is_charging():
-                    self.__request_current = self.__request_current + 1
-                else:
-                    pass
-
+        elif not self.regulation_lock and self.__cnt_current % 3 == 0:
+            if delta >= 6 and self.check_if_ev_is_connected():
+                 self.__request_current = self.__request_current + 1
+            elif self.check_if_ev_is_charging():
+                self.__request_current = self.__request_current + 1
+            self.__cnt_current = 0
+            
+        if self.__cnt_current >= 3:
             self.__cnt_current = 0
 
         # print("self.regulationLock1",self.regulationLock1)
