@@ -169,10 +169,12 @@ class Evse():
             self.__regulation_delay = 1
 
         if delta < 0 and self.__cnt_current % 2 == 0:
-            self.__request_current = self.__request_current + delta
             if '0' == self.setting.config["btn,PHOTOVOLTAIC"]:
                 self.regulation_lock = True
                 self.lock_counter = 1
+                self.__request_current = self.__request_current + delta
+            else:
+                self.__request_current = self.__request_current - 1
             self.__cnt_current = 0
 
         elif self.__regulation_delay > 0:
