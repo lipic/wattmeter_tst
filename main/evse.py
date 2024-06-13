@@ -142,6 +142,9 @@ class Evse():
 
         sum_current = i1 + i2 + i3
         avg_current = int(round(sum_current / 300))
+        grid_assist = int(self.setting.config["in,PV-GRID-ASSIST-A"])
+        if grid_assist == 0:
+            grid_assist = -1
 
         hdo = False
         if (1 == self.wattmeter.data_layer.data["A"]) and (1 == int(self.setting.config['sw,WHEN AC IN: CHARGING'])):
@@ -149,11 +152,11 @@ class Evse():
 
         if (self.setting.config["btn,PHOTOVOLTAIC"] == '1') and (hdo == False) and (
                 self.setting.config["chargeMode"] == '0'):
-            delta = int(self.setting.config["in,PV-GRID-ASSIST-A"]) - int(round(i1 / 100.0))
+            delta = grid_assist - int(round(i1 / 100.0))
 
         elif (self.setting.config["btn,PHOTOVOLTAIC"] == '2') and (hdo == False) and (
                 self.setting.config["chargeMode"] == '0'):
-            delta = int(self.setting.config["in,PV-GRID-ASSIST-A"]) - avg_current
+            delta = grid_assist - avg_current
 
         else:
             delta = int(self.setting.config["in,MAX-CURRENT-FROM-GRID-A"]) - max_current
