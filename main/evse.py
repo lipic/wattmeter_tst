@@ -144,7 +144,7 @@ class Evse():
         avg_current = int(round(sum_current / 300))
         grid_assist = int(self.setting.config["in,PV-GRID-ASSIST-A"])
         if grid_assist == 0:
-            grid_assist = -2
+            grid_assist = -1
 
         hdo = False
         if (1 == self.wattmeter.data_layer.data["A"]) and (1 == int(self.setting.config['sw,WHEN AC IN: CHARGING'])):
@@ -187,7 +187,7 @@ class Evse():
             self.__request_current = 0
             self.__cnt_current = 0
 
-        elif not self.regulation_lock and self.__cnt_current % 3 == 0:
+        elif not self.regulation_lock and self.__cnt_current % 3 == 0 and delta >= 0:
             if delta >= 6 and self.check_if_ev_is_connected():
                  self.__request_current = self.__request_current + 1
             elif self.check_if_ev_is_charging():
