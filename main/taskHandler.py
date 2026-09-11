@@ -34,7 +34,22 @@ EV_CHARGING = 3
 _ASYNCIO_V3 = hasattr(asyncio, "Loop") and hasattr(asyncio, "wait_for") \
     and hasattr(asyncio, "open_connection")
 
+
+def _reset_cause():
+    # Rozlisi, jestli restart udelal hardwarovy watchdog (zaseknuta smycka),
+    # softwarove reset() z kodu, nebo vypadek napajeni.
+    try:
+        import machine
+        cause = machine.reset_cause()
+    except Exception:
+        return "?"
+    for name in ("PWRON_RESET", "HARD_RESET", "WDT_RESET", "DEEPSLEEP_RESET", "SOFT_RESET"):
+        if getattr(machine, name, None) == cause:
+            return "{} ({})".format(cause, name)
+    return str(cause)
+
 _LOG_AP = "AP:"
+_LOG_SYS = "sys:"
 _LOG_ERR = "err:"
 _LOG_WEB = "web:"
 
@@ -244,7 +259,17 @@ class TaskHandler:
             writer.write(b"GET /getEspID HTTP/1.0\r\n\r\n")
             await asyncio.wait_for(writer.drain(), WEB_WDT_TIMEOUT_S)
             response = await asyncio.wait_for(reader.read(15), WEB_WDT_TIMEOUT_S)
-            return response is not None and response.startswith(b"HTTP/")
+            ok = response is not None and response.startswith(b"HTTP/")
+            # Odpoved je nutne docist az do konce. Kdyz se spojeni zavre driv,
+            # server dopisuje do zavreneho socketu a spadne na ECONNRESET,
+            # a to pri kazde sonde.
+            drained = 0
+            while drained < 1024:
+                rest = await asyncio.wait_for(reader.read(128), WEB_WDT_TIMEOUT_S)
+                if not rest:
+                    break
+                drained += len(rest)
+            return ok
         except Exception as e:
             print(_LOG_WEB, 'err', e)
             return False
@@ -346,13 +371,29 @@ class TaskHandler:
             await asyncio.sleep(1.5)
 
     async def system_handler(self):
+        # Tenhle task jako jediny krmi hardwarovy watchdog. Kdyby umrel na
+        # vyjimce, ostatni tasky bezi dal a deska se za 60 s tvrde restartuje
+        # bez jakekoli hlasky - proto je zbytek smycky odstineny.
+        tick = 0
+        last_err = None
         while True:
-            self.setting.config['ERRORS'] = str(self.errors)
             self.wdt.feed()
-            collect()
+            try:
+                self.setting.config['ERRORS'] = str(self.errors)
+                collect()
+                tick += 1
+                if tick >= 60:  # stav pameti jednou za minutu, kvuli hledani pricin restartu
+                    tick = 0
+                    print(_LOG_SYS, 'heap', mem_free())
+            except Exception as e:
+                msg = str(e)
+                if msg != last_err:  # stejnou chybu nehlasit kazdou sekundu
+                    last_err = msg
+                    print(_LOG_ERR, 'sys', msg)
             await asyncio.sleep(1)
 
     def mainTaskHandlerRun(self):
+        print(_LOG_SYS, 'boot reset_cause={} heap={}'.format(_reset_cause(), mem_free()))
         loop = asyncio.get_event_loop()
         loop.create_task(self.wifiHandler())
         loop.create_task(self.apHandler())
