@@ -58,9 +58,16 @@ class Evse:
         # Podily se pocitaji dopredu pro vsechny stanice a indexuji se cislem stanice.
         # Drive se pouzival generator, ktery se posouval jen u prectenych EVSE, takze pri
         # chybe cteni dostala stanice podil urceny pro jinou.
+        # HDO proud je celkovy limit pro vsechny stanice dohromady - deli se mezi aktivni
+        # EVSE stejne jako pri balancingu, vcetne orezani na limit jednotlive stanice.
         contribution = None
-        if charging_enabled and (not hdo_mode) and balancing:
-            contribution = self.current_evse_contribution(current)
+        if charging_enabled:
+            if hdo_mode:
+                if self.wattmeter.data_layer.data["A"] != 1:
+                    hdo_max_current = 0
+                contribution = self.current_evse_contribution(hdo_max_current)
+            elif balancing:
+                contribution = self.current_evse_contribution(current)
 
         write_errors = []
         for i in range(0, self.data_layer.data['NUMBER_OF_EVSE']):
@@ -72,10 +79,7 @@ class Evse:
 
                 if charging_enabled:
                     if hdo_mode:
-                        if self.wattmeter.data_layer.data["A"] == 1:
-                            write_current = hdo_max_current
-                        else:
-                            write_current = 0
+                        write_current = contribution[i]
                         source = "HDO"
                     elif balancing:
                         write_current = contribution[i]
