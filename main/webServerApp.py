@@ -2,6 +2,7 @@ import picoweb
 from machine import reset, RTC
 from time import time
 import ujson as json
+import gc
 from gc import collect
 from collections import OrderedDict
 import uasyncio as asyncio
@@ -9,6 +10,34 @@ collect()
 
 REQUEST_TIMEOUT_S = 30
 MAX_BODY = 1024           # vetsi telo POST se odmitne (ochrana pameti)
+JSON_CHUNK = 256          # velke JSON odpovedi se posilaji po castech teto velikosti
+
+
+def _json_pieces(obj):
+    # JSON po malych kouscich (generator). Slovnik a seznam se rozlozi az na
+    # jednotlive polozky, takze se nikdy nesklada cely retezec odpovedi.
+    if isinstance(obj, dict):
+        yield "{"
+        first = True
+        for key in list(obj.keys()):      # kopie klicu - data se mezi zapisy muzou menit
+            if not first:
+                yield ","
+            first = False
+            yield json.dumps(key)
+            yield ":"
+            for piece in _json_pieces(obj.get(key)):
+                yield piece
+        yield "}"
+    elif isinstance(obj, (list, tuple)):
+        yield "["
+        for i in range(len(obj)):
+            if i:
+                yield ","
+            for piece in _json_pieces(obj[i]):
+                yield piece
+        yield "]"
+    else:
+        yield json.dumps(obj)
 _ASYNCIO_V3 = hasattr(asyncio, "Loop") and hasattr(asyncio, "wait_for")
 _LOG_WEB = "web:"
 
@@ -36,8 +65,10 @@ class WebServerApp:
             ("/powerChart", self.power_chart),
             ("/energyChart", self.energy_chart),
             ("/getEspID", self.get_esp_id),
-            ("/modbusRW", self.modbus_rw)
+            ("/modbusRW", self.modbus_rw),
+            ("/diag", self.diag)
         ]
+        self.diag_provider = None     # nastavi TaskHandler (doba behu, restart, chyby)
         self.app = picoweb.WebApp(None, self.ROUTES)
         self._install_request_timeout()
 
@@ -165,7 +196,9 @@ class WebServerApp:
             charge_mode = int(self.setting.config['chargeMode'])
             self.wattmeter.data_layer.data['chargeMode'] = charge_mode
             yield from picoweb.start_response(resp, "application/json")
-            yield from resp.awrite(self.wattmeter.data_layer.__str__())
+            # po castech: json.dumps cele odpovedi (~2 KB+) potreboval jeden
+            # souvisly blok pameti a na fragmentovane halde padal (prazdne telo)
+            yield from self.awrite_json(resp, self.wattmeter.data_layer.data)
 
     def update_evse(self, req, resp):
         yield from picoweb.start_response(resp, "application/json")
@@ -227,7 +260,7 @@ class WebServerApp:
             for key, value in self.setting.get_ram().items():
                 datalayer[key] = value
             yield from picoweb.start_response(resp, "application/json")
-            yield from resp.awrite(json.dumps(datalayer))
+            yield from self.awrite_json(resp, datalayer)
 
     def data_table(self, req, resp):
         collect()
@@ -244,6 +277,55 @@ class WebServerApp:
         datalayer = {"ID": " Wattmeter: {}".format(self.setting.config['ID']), "IP": ip}
         yield from picoweb.start_response(resp, "application/json")
         yield from resp.awrite(json.dumps(datalayer))
+
+    def awrite_json(self, resp, obj):
+        # Odeslani JSON po kouscich ~JSON_CHUNK B - zadny velky souvisly blok.
+        # Kousky se spojuji primo do retezce (ne do seznamu): u dlouhych
+        # ciselnych poli je kousku na 256 B pres 80 a seznam by sam potreboval
+        # souvisly blok ~0,5-1 KB.
+        chunk = ""
+        for piece in _json_pieces(obj):
+            chunk += piece
+            if len(chunk) >= JSON_CHUNK:
+                yield from resp.awrite(chunk)
+                chunk = ""
+        if chunk:
+            yield from resp.awrite(chunk)
+
+    def diag(self, req, resp):
+        # Diagnostika pro hledani pricin "odmlceni": pamet, nejvetsi souvisly
+        # blok (fragmentace haldy), doba behu, pricina posledniho restartu.
+        collect()
+        free = gc.mem_free()
+        info = {
+            "version": self.setting.config.get("txt,ACTUAL SW VERSION"),
+            "mem_free": free,
+            "mem_alloc": gc.mem_alloc(),
+            "largest_block": self.largest_block(free),
+        }
+        if self.diag_provider is not None:
+            try:
+                info.update(self.diag_provider())
+            except Exception as e:
+                info["diag_error"] = str(e)
+        yield from picoweb.start_response(resp, "application/json")
+        yield from resp.awrite(json.dumps(info))
+
+    def largest_block(self, free):
+        # Nejvetsi blok, ktery jde prave alokovat (puleni intervalu). Kdyz je
+        # vyrazne mensi nez mem_free, je halda fragmentovana.
+        lo = 0
+        hi = free
+        while hi - lo > 64:
+            mid = (lo + hi) // 2
+            try:
+                block = bytearray(mid)
+                del block
+                lo = mid
+            except MemoryError:
+                hi = mid
+            collect()       # uvolnit pokusny blok pred dalsim, vetsim pokusem
+        return lo
 
     def read_json(self, req):
         # Telo POST je JSON objekt (frontend posila retezec z JSON.stringify).

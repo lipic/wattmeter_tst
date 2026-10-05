@@ -68,6 +68,11 @@ class TaskHandler:
         self.wattmeter = wattmeter.Wattmeter(wattInterface, self.setting)  # Create instance of Wattmeter
         self.evse = evse.Evse(self.wattmeter, evseInterface, self.setting)
         self.webServerApp = webServerApp.WebServerApp(wifi, self.wattmeter, self.evse, wattInterface, evseInterface, self.setting)  # Create instance of Webserver App
+        # diagnostika pro /diag: doba behu, pricina posledniho restartu, chyby
+        self.reset_cause = _reset_cause()
+        self.uptime_ms = 0
+        self._uptime_tick = time.ticks_ms()
+        self.webServerApp.diag_provider = self.diag_info
         self.modbus_tcp = None
         if self.setting.get_switch('sw,MODBUS-TCP', False):
             try:
@@ -379,6 +384,10 @@ class TaskHandler:
         while True:
             self.wdt.feed()
             try:
+                # doba behu pres ticks_diff - ticks_ms preteka po ~12 dnech
+                now = time.ticks_ms()
+                self.uptime_ms += time.ticks_diff(now, self._uptime_tick)
+                self._uptime_tick = now
                 self.setting.config['ERRORS'] = str(self.errors)
                 collect()
                 tick += 1
@@ -392,8 +401,16 @@ class TaskHandler:
                     print(_LOG_ERR, 'sys', msg)
             await asyncio.sleep(1)
 
+    def diag_info(self):
+        return {
+            "uptime_s": self.uptime_ms // 1000,
+            "reset_cause": self.reset_cause,
+            "errors": self.errors,
+            "wattmeter_ok": self.wattmeter.data_valid(),
+        }
+
     def mainTaskHandlerRun(self):
-        print(_LOG_SYS, 'boot reset_cause={} heap={}'.format(_reset_cause(), mem_free()))
+        print(_LOG_SYS, 'boot reset_cause={} heap={}'.format(self.reset_cause, mem_free()))
         loop = asyncio.get_event_loop()
         loop.create_task(self.wifiHandler())
         loop.create_task(self.apHandler())
