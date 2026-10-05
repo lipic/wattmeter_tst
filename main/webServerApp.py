@@ -3,10 +3,12 @@ from machine import reset, RTC
 from time import time
 import ujson as json
 from gc import collect
+from collections import OrderedDict
 import uasyncio as asyncio
 collect()
 
 REQUEST_TIMEOUT_S = 30
+MAX_BODY = 1024           # vetsi telo POST se odmitne (ochrana pameti)
 _ASYNCIO_V3 = hasattr(asyncio, "Loop") and hasattr(asyncio, "wait_for")
 _LOG_WEB = "web:"
 
@@ -91,14 +93,17 @@ class WebServerApp:
     def modbus_rw(self, req, resp):
         collect()
         if req.method == "POST":
-            datalayer = {}
-            req = await self.proccess_msg(req)
-            for i in req.form:
-                i = json.loads(i)
+            datalayer = {"process": 0, "value": "Bad request"}
+            i = await self.read_json(req)
+            try:
                 reg = int(i['reg'])
                 _id = int(i['id'])
-                data = int(i['value'])
-                if i['type'] == 'read':
+                data = int(i.get('value', 0))
+                req_type = i['type']
+            except Exception:
+                req_type = None
+            if req_type is not None:
+                if req_type == 'read':
                     try:
                         if _id == 0:
                             async with self.watt_io as w:
@@ -114,7 +119,7 @@ class WebServerApp:
                     except Exception as e:
                         datalayer = {"process": e}
 
-                elif i['type'] == 'write':
+                elif req_type == 'write':
                     try:
                         if _id == 0:
                             async with self.watt_io as w:
@@ -138,21 +143,22 @@ class WebServerApp:
         collect()
         datalayer = {}
         if req.method == "POST":
-            req = await self.proccess_msg(req)
-            for i in req.form:
-                i = json.loads(i)
-                if list(i.keys())[0] == 'relay':
-                    if self.wattmeter.negotiation_relay():
-                        datalayer = {"process": 1}
-                    else:
-                        datalayer = {"process": 0}
-                elif list(i.keys())[0] == 'time':
+            i = await self.read_json(req)
+            if i is not None and 'relay' in i:
+                if self.wattmeter.negotiation_relay():
+                    datalayer = {"process": 1}
+                else:
+                    datalayer = {"process": 0}
+            elif i is not None and 'time' in i:
+                try:
+                    t = i["time"]
                     rtc = RTC()
-                    rtc.datetime((int(i["time"][2]), int(i["time"][1]), int(i["time"][0]), 0, int(i["time"][3]),
-                                  int(i["time"][4]), int(i["time"][5]), 0))
+                    rtc.datetime((int(t[2]), int(t[1]), int(t[0]), 0, int(t[3]), int(t[4]), int(t[5]), 0))
                     self.wattmeter.start_up_time = time()
                     self.wattmeter.time_init = True
                     datalayer = {"process": "OK"}
+                except Exception:
+                    datalayer = {"process": 0}
             yield from picoweb.jsonify(resp, datalayer)
 
         else:
@@ -170,20 +176,18 @@ class WebServerApp:
         collect()
         if req.method == "POST":
             datalayer = {}
-            size = int(req.headers[b"Content-Length"])
-            qs = yield from req.reader.read(size)
-            req.qs = qs.decode()
-            try:
-                i = json.loads(req.qs)
-            except:
-                pass
+            i = await self.read_json(req)
+            if i is None or not i.get("ssid"):
+                # neplatny pozadavek - stejny kod jako "nevybrana sit"
+                yield from picoweb.jsonify(resp, {"process": 0, "ip": self.ip_address})
+                return
 
             if i["ssid"] == "no_wifi":
                 with open('wifi.dat', 'w') as f:
                     f.write('')
                 reset()
             else:
-                datalayer = await self.wifi_manager.handle_configure(i["ssid"], i["password"])
+                datalayer = await self.wifi_manager.handle_configure(i["ssid"], i.get("password") or "")
                 self.ip_address = self.wifi_manager.getIp()
                 datalayer = {"process": datalayer, "ip": self.ip_address}
 
@@ -205,19 +209,23 @@ class WebServerApp:
         collect()
 
         if req.method == "POST":
-            datalayer = {}
-            req = await self.proccess_msg(req)
-
-            for i in req.form:
-                i = json.loads(i)
-                datalayer = self.setting.handle_configure(i["variable"], i["value"])
-                datalayer = {"process": datalayer}
+            datalayer = {"process": False}
+            i = await self.read_json(req)
+            if i is not None and "variable" in i and "value" in i:
+                datalayer = {"process": self.setting.handle_configure(i["variable"], i["value"])}
 
             yield from picoweb.start_response(resp, "application/json")
             yield from resp.awrite(json.dumps(datalayer))
 
         else:
-            datalayer = self.setting.getConfig()
+            # konfigurace + hodnoty drzene jen v RAM (ram,EVSEx), poradi klicu
+            # konfigurace se zachova - podle nej se sklada stranka Nastaveni
+            datalayer = OrderedDict()
+            config = self.setting.getConfig()
+            for key in config:
+                datalayer[key] = config[key]
+            for key, value in self.setting.get_ram().items():
+                datalayer[key] = value
             yield from picoweb.start_response(resp, "application/json")
             yield from resp.awrite(json.dumps(datalayer))
 
@@ -237,12 +245,36 @@ class WebServerApp:
         yield from picoweb.start_response(resp, "application/json")
         yield from resp.awrite(json.dumps(datalayer))
 
-    def proccess_msg(self, req):
-        size = int(req.headers[b"Content-Length"])
-        qs = yield from req.reader.read(size)
-        req.qs = qs.decode()
-        req.parse_qs()
-        return req
+    def read_json(self, req):
+        # Telo POST je JSON objekt (frontend posila retezec z JSON.stringify).
+        # Cte se readexactly - read(n) vrati jen to, co uz doslo, a kdyz telo
+        # prijde po castech, JSON by byl useknuty. Vraci dict, jinak None.
+        try:
+            size = int(req.headers.get(b"Content-Length", 0))
+        except Exception:
+            size = 0
+        if size <= 0 or size > MAX_BODY:
+            return None
+        try:
+            body = yield from req.reader.readexactly(size)
+            body = body.decode()
+        except Exception:
+            return None
+        data = None
+        try:
+            data = json.loads(body)
+        except Exception:
+            # zpetna kompatibilita: JSON zakodovany jako formular (drivejsi
+            # cteni pres parse_qs - zaroven rozbijelo hodnoty s & = + %)
+            try:
+                req.qs = body
+                req.parse_qs()
+                for key in req.form:
+                    data = json.loads(key)
+                    break
+            except Exception:
+                data = None
+        return data if isinstance(data, dict) else None
 
     async def webServer_run(self):
         try:

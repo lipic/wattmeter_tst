@@ -29,6 +29,7 @@ class Evse:
         self.__restart_hold = 0
         self.__last_lock = False
         self.__last_delay = 0
+        self.__meter_lost = False
         self.logger = ulogging.getLogger("Evse")
 
         if int(self.setting.config['sw,TESTING SOFTWARE']) == 1:
@@ -46,14 +47,32 @@ class Evse:
             except Exception as e:
                 status.append('FAILED_READ')
                 self.logger.info("evse_handler with ID: {} has error: {}".format((i + 1), e))
-        current = self.balancingEvseCurrent()
-        hdo_max_current = int(self.setting.config['in,AC-IN-MAX-CURRENT-FROM-GRID-A'])
-        if hdo_max_current > current:
-            hdo_max_current = current
         charging_enabled = self.setting.config["sw,ENABLE CHARGING"] == '1'
         hdo_mode = (self.setting.config["sw,WHEN AC IN: CHARGING"] == '1') and int(
             self.setting.config["chargeMode"]) == ECO
         balancing = self.setting.config["sw,ENABLE BALANCING"] == '1'
+
+        # Vyrovnavani i HDO stoji na datech z elektromeru (proudy, vstup AC IN).
+        # Kdyz elektromer neodpovida, zustaly by v datech stare proudy, regulace
+        # by videla falesnou rezervu a pridavala az na maximum - jistic by nikdo
+        # nehlidal. Proto se nabijeni zastavi a regulace zacne po obnove od nuly.
+        # Rucni rezim (pevny proud bez vyrovnavani) na elektromeru nezavisi.
+        meter_ok = self.wattmeter.data_valid()
+        meter_needed = charging_enabled and (hdo_mode or balancing)
+        if meter_ok:
+            if self.__meter_lost:
+                self.logger.info("Wattmeter data OK again, regulation restarts from 0 A")
+                self.__meter_lost = False
+            current = self.balancingEvseCurrent()
+        else:
+            if not self.__meter_lost:
+                self.logger.info("Wattmeter data lost -> EVSE stop (balancing/HDO), regulation reset")
+                self.__meter_lost = True
+            self.__reset_regulation()
+            current = 0
+        hdo_max_current = int(self.setting.config['in,AC-IN-MAX-CURRENT-FROM-GRID-A'])
+        if hdo_max_current > current:
+            hdo_max_current = current
 
         # Podily se pocitaji dopredu pro vsechny stanice a indexuji se cislem stanice.
         # Drive se pouzival generator, ktery se posouval jen u prectenych EVSE, takze pri
@@ -61,7 +80,9 @@ class Evse:
         # HDO proud je celkovy limit pro vsechny stanice dohromady - deli se mezi aktivni
         # EVSE stejne jako pri balancingu, vcetne orezani na limit jednotlive stanice.
         contribution = None
-        if charging_enabled:
+        if meter_needed and not meter_ok:
+            contribution = [0] * self.data_layer.data['NUMBER_OF_EVSE']
+        elif charging_enabled:
             if hdo_mode:
                 if self.wattmeter.data_layer.data["A"] != 1:
                     hdo_max_current = 0
@@ -77,7 +98,10 @@ class Evse:
                         self.logger.debug("EVSE{} SKIP zapis, read status={}".format(i + 1, status[i]))
                     continue
 
-                if charging_enabled:
+                if meter_needed and not meter_ok:
+                    write_current = 0
+                    source = "METER-ERR"
+                elif charging_enabled:
                     if hdo_mode:
                         write_current = contribution[i]
                         source = "HDO"
@@ -85,7 +109,7 @@ class Evse:
                         write_current = contribution[i]
                         source = "BALANCE"
                     else:
-                        write_current = int(self.setting.config["inp,EVSE{}".format(i + 1)])
+                        write_current = self.setting.get_evse_current(i + 1)
                         source = "MANUAL"
                 else:
                     write_current = 0
@@ -131,13 +155,16 @@ class Evse:
         if charge_mode != self.__last_charge_mode:
             self.logger.info("Charge mode changed from {} to {}, regulation reset".format(self.__last_charge_mode, charge_mode))
             self.__last_charge_mode = charge_mode
-            self.__request_current = 0
-            self.__cnt_current = 0
-            self.__regulation_delay = 0
-            self.regulation_lock = False
-            self.lock_counter = 0
-            self.__active_evse = 0
-            self.__restart_hold = 0
+            self.__reset_regulation()
+
+    def __reset_regulation(self):
+        self.__request_current = 0
+        self.__cnt_current = 0
+        self.__regulation_delay = 0
+        self.regulation_lock = False
+        self.lock_counter = 0
+        self.__active_evse = 0
+        self.__restart_hold = 0
 
     async def __read_evse_data(self, reg, length, _id):
         try:
@@ -256,7 +283,11 @@ class Evse:
             self.__cnt_current = 0
             branch = "DELAY-HOLD-0"
 
-        elif not self.regulation_lock and self.__cnt_current % 3 == 0 and delta >= 0:
+        # Pri hlidani jistice (GRID) se pridava jen s rezervou aspon 1 A - pri
+        # nulove rezerve by +1 A prekrocilo jistic a regulace by kmitala nad nim.
+        # FVE rezimy maji cil uz posunuty (grid_assist), tam staci delta >= 0.
+        elif not self.regulation_lock and self.__cnt_current % 3 == 0 and \
+                delta >= (1 if delta_src.startswith("GRID") else 0):
             if delta >= 6 and self.check_if_ev_is_connected():
                  self.__request_current = self.__request_current + 1
                  branch = "UP-connected"
@@ -287,7 +318,7 @@ class Evse:
 
         total_limit = 0
         for i in range(0, self.data_layer.data['NUMBER_OF_EVSE']):
-            total_limit += int(self.setting.config["inp,EVSE{}".format(i + 1)])
+            total_limit += self.setting.get_evse_current(i + 1)
 
         if self.__request_current > total_limit:
             branch = branch + "+CAP"
@@ -385,7 +416,7 @@ class Evse:
         debug_on = self.logger.isEnabledFor(ulogging.DEBUG)
         caps = []
         for i in range(0, self.data_layer.data['NUMBER_OF_EVSE']):
-            evse_limit = int(self.setting.config["inp,EVSE{}".format(i + 1)])
+            evse_limit = self.setting.get_evse_current(i + 1)
             if contribution_current[i] > evse_limit:
                 if debug_on:
                     caps.append("EVSE{}({}->{})".format(i + 1, contribution_current[i], evse_limit))

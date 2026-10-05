@@ -30,13 +30,22 @@ class ModbusTCPServer:
         collect()
         self.client.setup_registers(registers=register_definitions, use_default_vals=True)
         float_value = float(setting_data["txt,ACTUAL SW VERSION"])
+        # Verze do registru 772 jako hex cislice "<verze*10><posledni dve cislice
+        # verze hexa>": 2.153 -> "21" + hex(53) -> 0x2135. Zaklad 16 explicitne:
+        # starsi MicroPython (napr. 1.11) cetl int("0x..") jako hex, novejsi
+        # ho bez zakladu odmitne. Bez f-stringu a anotaci kvuli MicroPythonu 1.11.
         self.fw_version = "{}".format(int(float_value * 1000))
-        last_two_char: str = hex(int(self.fw_version[2:], 10)).replace("0x","")
-        self.fw_version = (int(f"0x{int(float_value * 10)}{last_two_char}"))
-        serial_raw: list = ["{:02x}".format(ord("0"))]
-        for i in setting_data["ID"]:
-            serial_raw.append("{:02x}".format(ord(i)))
-        self.serial_number: list = list()
+        last_two_char = hex(int(self.fw_version[2:], 10)).replace("0x", "")
+        self.fw_version = int("{}{}".format(int(float_value * 10), last_two_char), 16)
+        # Seriove cislo = "0" + 5 znaku ID (3 registry po 2 znacich). Kratsi ID
+        # (lze prepsat pres API) by shodilo konstruktor na IndexError a Modbus
+        # TCP by nenabehl - proto se doplni nulami zleva a vezme poslednich 5
+        # znaku; & 0xFF udrzi kazdy znak v jednom bajtu (registr ma 16 bitu).
+        serial_id = ("00000" + str(setting_data["ID"]))[-5:]
+        serial_raw = ["{:02x}".format(ord("0"))]
+        for i in serial_id:
+            serial_raw.append("{:02x}".format(ord(i) & 0xFF))
+        self.serial_number = list()
         for i in range(0, 6, 2):
             self.serial_number.append("0x{}{}".format(serial_raw[i], serial_raw[i+1]))
 
@@ -58,6 +67,7 @@ class ModbusTCPServer:
             self.set_dynamic_registers()
             if self.wifi.isConnected():
                 try:
+                    self.nonblocking_client()
                     self.client.process()
                 except Exception as e:
                     self.logger.error(e)
@@ -65,12 +75,28 @@ class ModbusTCPServer:
 
             await asyncio.sleep(0.4)
 
+    def nonblocking_client(self):
+        # umodbus nastavi socketu pripojeneho klienta timeout 0.5 s a v kazdem
+        # process() na nem vola recv(). Kdyz klient zrovna nic neposila (mezi
+        # dotazy, nebo zmizel bez ukonceni spojeni), recv() blokuje celou
+        # asyncio smycku az 0.5 s - pri volani kazdych 0.4 s je zarizeni vetsinu
+        # casu zablokovane (web, regulace EVSE). S timeoutem 0 vrati recv()
+        # hned EAGAIN, ktery umodbus chyta jako "zadny pozadavek".
+        # Novy klient se jeste jednou precte s 0.5 s (hned po accept), dalsi
+        # volani uz neblokuji.
+        try:
+            sock = self.client._itf._client_sock
+            if sock is not None:
+                sock.settimeout(0)
+        except Exception:
+            pass
+
     def set_static_registers(self):
         self.client.set_hreg(11, [1648])
         self.client.set_hreg(770, [4126])
         self.client.set_hreg(772, [self.fw_version])
         self.client.set_hreg(4098, [4])
-        self.client.set_hreg(20480, [0x496f, 0x746d, 0x6574, 0x6572, int(self.serial_number[0]), int(self.serial_number[1]), int(self.serial_number[2])])
+        self.client.set_hreg(20480, [0x496f, 0x746d, 0x6574, 0x6572, int(self.serial_number[0], 16), int(self.serial_number[1], 16), int(self.serial_number[2], 16)])
         self.client.set_hreg(40960, [7])
         self.client.set_hreg(41216, [1])
 
@@ -78,24 +104,24 @@ class ModbusTCPServer:
         self.client.set_hreg(0, [self.data['U2']*10, 0])
         self.client.set_hreg(2, [self.data['U2']*10, 0])
         self.client.set_hreg(4, [self.data['U3']*10, 0])
-        i1: int = self.data['I1'] if self.data['I1'] < 32768 else self.data['I1'] - 65536
+        i1 = self.data['I1'] if self.data['I1'] < 32768 else self.data['I1'] - 65536
         self.client.set_hreg(12, [i1*10 & 0xFFFF, (i1*10 >> 16) & 0xFFFF])
-        i2: int = self.data['I2'] if self.data['I2'] < 32768 else self.data['I2'] - 65536
+        i2 = self.data['I2'] if self.data['I2'] < 32768 else self.data['I2'] - 65536
         self.client.set_hreg(14, [i2*10 & 0xFFFF, (i2*10 >> 16) & 0xFFFF])
-        i3: int = self.data['I3'] if self.data['I3'] < 32768 else self.data['I3'] - 65536
+        i3 = self.data['I3'] if self.data['I3'] < 32768 else self.data['I3'] - 65536
         self.client.set_hreg(16, [i3*10 & 0xFFFF, (i3*10 >> 16) & 0xFFFF])
-        p1: int = self.data['P1'] if self.data['P1'] < 32768 else self.data['P1'] - 65536
+        p1 = self.data['P1'] if self.data['P1'] < 32768 else self.data['P1'] - 65536
         self.client.set_hreg(18, [p1*10 & 0xFFFF, (p1*10 >> 16) & 0xFFFF])
-        p2: int = self.data['P2'] if self.data['P2'] < 32768 else self.data['P2'] - 65536
+        p2 = self.data['P2'] if self.data['P2'] < 32768 else self.data['P2'] - 65536
         self.client.set_hreg(20, [p2*10 & 0xFFFF, (p2*10 >> 16) & 0xFFFF])
-        p3: int = self.data['P3'] if self.data['P3'] < 32768 else self.data['P3'] - 65536
+        p3 = self.data['P3'] if self.data['P3'] < 32768 else self.data['P3'] - 65536
         self.client.set_hreg(22, [p3*10 & 0xFFFF, (p3*10 >> 16) & 0xFFFF])
         p_sum = (p1 + p2 + p3)*10
         self.client.set_hreg(40, [p_sum & 0xFFFF, (p_sum >> 16) & 0xFFFF])
         self.client.set_hreg(51, [500])
-        e_positive: int = int((self.data['E1tP'] + self.data['E2tP'] + self.data['E3tP'])/10)
+        e_positive = int((self.data['E1tP'] + self.data['E2tP'] + self.data['E3tP'])/10)
         self.client.set_hreg(52, [e_positive & 0xFFFF, (e_positive >> 16) & 0xFFFF])
-        e_negative: int = int((self.data['E1tN'] + self.data['E2tN'] + self.data['E3tN'])/10)
+        e_negative = int((self.data['E1tN'] + self.data['E2tN'] + self.data['E3tN'])/10)
         self.client.set_hreg(78, [e_negative & 0xFFFF, (e_negative >> 16) & 0xFFFF])
         self.client.set_hreg(64, [int(self.data['E1tP']/10) & 0xFFFF, (int(self.data['E1tP']/10) >> 16) & 0xFFFF])
         self.client.set_hreg(66, [int(self.data['E2tP']/10) & 0xFFFF, (int(self.data['E2tP']/10) >> 16) & 0xFFFF])

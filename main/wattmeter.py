@@ -5,6 +5,10 @@ from gc import collect
 import ulogging
 collect()
 
+# Po tolika cyklech za sebou bez platne odpovedi elektromeru (~1.5 s na cyklus)
+# se data povazuji za neplatna - regulace EVSE pak nabijeni zastavi.
+COMM_FAIL_LIMIT = 3
+
 class Wattmeter:
 
     def __init__(self, wattmeter, setting):
@@ -26,6 +30,9 @@ class Wattmeter:
         self.e15_p_lock_counter = 0
         self.e15_p_lock = False
         self.minute_energy = []
+        # pocet cyklu za sebou bez platnych proudu z elektromeru; na zacatku
+        # jeste zadna data nejsou, proto rovnou "neplatne"
+        self.comm_fail = COMM_FAIL_LIMIT
         self.data_layer.data['ID'] = self.setting.config['ID']
 
         self.logger = ulogging.getLogger("Wattmeter")
@@ -54,7 +61,13 @@ class Wattmeter:
                                                              time.localtime()[3], time.localtime()[4],
                                                              time.localtime()[5]))
 
-        await self.__read_wattmeter_data(1000, 12)
+        # proudy/vykony (reg. 1000) jsou podklad pro hlidani jistice - podle
+        # nich se pozna, jestli elektromer komunikuje
+        currents_ok = (await self.__read_wattmeter_data(1000, 12)) == "SUCCESS_READ"
+        if currents_ok:
+            self.comm_fail = 0
+        elif self.comm_fail < COMM_FAIL_LIMIT:
+            self.comm_fail += 1
         await self.__read_wattmeter_data(2502, 6)
         await self.__read_wattmeter_data(2802, 6)
         await self.__read_wattmeter_data(3102, 12)
@@ -134,13 +147,27 @@ class Wattmeter:
             self.data_layer.data["D"] = self.file_handler.read_data(self.daily_consumption, 31)
             self.data_layer.data["M"] = self.file_handler.get_monthly_energy(self.daily_consumption)
 
+        if not currents_ok:
+            # az na konci, at minutove/hodinove zaznamy dobehnou; vyjimku chyti
+            # interface_handler a nastavi chybu elektromeru (LED, ERRORS)
+            raise Exception("no data from wattmeter ({}x)".format(self.comm_fail))
+
+    def data_valid(self):
+        # Proudy z elektromeru jsou aktualni - podle nich se smi regulovat EVSE.
+        return self.comm_fail < COMM_FAIL_LIMIT
+
     async def __read_wattmeter_data(self, reg, length):
 
         try:
             async with self.wattmeter_interface as w:
                 receive_data = await w.readWattmeterRegister(reg, length)
 
-            if (receive_data != "Null") and (reg == 1000):
+            # rozhrani pri chybe vraci None (driv "Null"); bez teto kontroly se
+            # chyba ztratila jako TypeError a data zustala na starych hodnotach
+            if receive_data is None or receive_data == "Null":
+                return "NO_DATA"
+
+            if reg == 1000:
                 self.data_layer.data['I1'] = int(((receive_data[0]) << 8) | (receive_data[1]))
                 self.data_layer.data['I2'] = int(((receive_data[2]) << 8) | (receive_data[3]))
                 self.data_layer.data['I3'] = int(((receive_data[4]) << 8) | (receive_data[5]))
@@ -155,7 +182,7 @@ class Wattmeter:
                 self.data_layer.data['S3'] = int(((receive_data[22]) << 8) | (receive_data[23]))
                 return "SUCCESS_READ"
 
-            if (receive_data != "Null") and (reg == 200):
+            if reg == 200:
                 a = int(receive_data[0] << 8) | receive_data[1]
                 if a == 1 and '1' == self.setting.config['sw,AC IN ACTIVE: HIGH']:
                     self.data_layer.data['A'] = 1
@@ -166,27 +193,27 @@ class Wattmeter:
 
                 return "SUCCESS_READ"
 
-            elif (receive_data != "Null") and (reg == 1015):
+            elif reg == 1015:
                 self.data_layer.data['F1'] = int(((receive_data[0]) << 8) | (receive_data[1]))
                 self.data_layer.data['F2'] = int(((receive_data[2]) << 8) | (receive_data[3]))
                 self.data_layer.data['F3'] = int(((receive_data[4]) << 8) | (receive_data[5]))
                 return "SUCCESS_READ"
 
-            elif (receive_data != "Null") and (reg == 2502):
+            elif reg == 2502:
                 self.data_layer.data['Em'] = int(((receive_data[0]) << 8) | receive_data[1]) + int(
                     ((receive_data[2]) << 8) | receive_data[3]) + int((receive_data[4] << 8) | receive_data[5]) - int(
                     (receive_data[6] << 8) | receive_data[7]) - int((receive_data[8] << 8) | receive_data[9]) - int(
                     (receive_data[10] << 8) | receive_data[11])
                 return "SUCCESS_READ"
 
-            elif (receive_data != "Null") and (reg == 2802):
+            elif reg == 2802:
                 self.data_layer.data['Eh'] = int(((receive_data[0]) << 8) | (receive_data[1])) + int(
                     ((receive_data[2]) << 8) | receive_data[3]) + int(((receive_data[4]) << 8) | receive_data[5])
                 self.data_layer.data['En'] = int(((receive_data[6]) << 8) | (receive_data[7])) + int(
                     ((receive_data[8]) << 8) | receive_data[9]) + int(((receive_data[10]) << 8) | receive_data[11])
                 return "SUCCESS_READ"
 
-            elif (receive_data != "Null") and (reg == 3102):
+            elif reg == 3102:
 
                 self.data_layer.data["E1dP"] = int((receive_data[0] << 8) | receive_data[1])
                 self.data_layer.data["E2dP"] = int((receive_data[2] << 8) | receive_data[3])
@@ -202,7 +229,7 @@ class Wattmeter:
                 self.data_layer.data['R3'] = int(((receive_data[22]) << 8) | receive_data[23])
                 return "SUCCESS_READ"
 
-            elif (receive_data != "Null") and (reg == 4000):
+            elif reg == 4000:
 
                 self.data_layer.data["E1tP"] = int(
                     (receive_data[2] << 24) | (receive_data[3] << 16) | (receive_data[0] << 8) | receive_data[1])
@@ -219,7 +246,7 @@ class Wattmeter:
 
                 return "SUCCESS_READ"
 
-            elif (receive_data != "Null") and (reg == 2902):
+            elif reg == 2902:
 
                 self.data_layer.data["EpDP"] = int(((receive_data[0]) << 8) | receive_data[1]) + int(
                     ((receive_data[2]) << 8) | receive_data[3]) + int(((receive_data[4]) << 8) | receive_data[5])

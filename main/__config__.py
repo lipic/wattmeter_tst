@@ -7,6 +7,11 @@ collect()
 _SWITCH_ON = ('1', 'true', 'on', 'yes')
 _SWITCH_OFF = ('0', 'false', 'off', 'no')
 _LOG_CFG = "cfg:"
+_RAM_EVSE = 'ram,EVSE'      # aktualni proud EVSE nastaveny sliderem - jen v RAM
+_EVSE_MIN_A = 6             # minimalni nabijeci proud dle normy [A]
+_EVSE_MAX_COUNT = 10
+# hodnoty jen za behu (zapisuje taskHandler) - nesmi je prepsat obsah setting.dat
+_RUNTIME_KEYS = ('ERRORS',)
 
 
 def parse_switch(value, default=False):
@@ -49,7 +54,32 @@ def normalize_value(variable, value):
 
     if (';' in text) or ('\n' in text) or ('\r' in text):
         return None
+
+    # Ciselna nastaveni - backend je pouziva pres int(), neplatna hodnota by
+    # shodila regulaci v kazdem cyklu.
+    if variable.startswith('in,') or variable.startswith('inp,'):
+        number = _parse_int(text)
+        if number is None:
+            return None
+        if variable == 'in,EVSE-NUMBER' and not 0 <= number <= _EVSE_MAX_COUNT:
+            return None
+        # proud stanice: 0 = vypnuto, jinak aspon minimum dle normy (1-5 A
+        # by nabijecka dostala jako neplatny PWM signal)
+        if variable.startswith('inp,EVSE') and (number < 0 or 0 < number < _EVSE_MIN_A):
+            return None
+        return str(number)
     return text
+
+
+def _parse_int(text):
+    # cele cislo, tolerantne i "16.0"; jinak None
+    try:
+        number = float(text)
+        if number != int(number):
+            return None
+        return int(number)
+    except Exception:
+        return None
 
 
 class Config:
@@ -101,10 +131,50 @@ class Config:
             self.defaults[key] = self.config[key]
         self.SETTING_PROFILES = 'setting.dat'
         self.SETTING_TMP = 'setting.dat.tmp'
+        # Hodnoty drzene jen v RAM (neukladaji se do setting.dat). Po bootu je
+        # slovnik prazdny, takze aktualni proud EVSE = inp,EVSEx (maximum).
+        self.ram = {}
         self.handle_configure('txt,ACTUAL SW VERSION', self.boot.get_version(""))
 
     def get_switch(self, variable, default=False):
         return parse_switch(self.config.get(variable), default)
+
+    def get_evse_current(self, evse_id):
+        # Aktualni proud stanice: hodnota ze slideru (ram,EVSEx), nejvys vsak
+        # inp,EVSEx - kdyz se maximum v Nastaveni snizi, plati nove maximum.
+        limit = int(self.config['inp,EVSE{}'.format(evse_id)])
+        if limit < _EVSE_MIN_A:
+            # 0 = stanice vypnuta; 1-5 A (stare nastaveni) by bylo neplatne PWM
+            return 0
+        value = self.ram.get(_RAM_EVSE + str(evse_id))
+        if value is None or value > limit:
+            return limit
+        return value
+
+    def get_ram(self):
+        ram = {}
+        for i in range(1, _EVSE_MAX_COUNT + 1):
+            ram[_RAM_EVSE + str(i)] = str(self.get_evse_current(i))
+        return ram
+
+    def _set_ram(self, variable, value):
+        try:
+            evse_id = int(variable[len(_RAM_EVSE):])
+            current = int(float(str(value).strip()))
+        except Exception:
+            return False
+        if not 1 <= evse_id <= _EVSE_MAX_COUNT:
+            return False
+        limit = int(self.config['inp,EVSE{}'.format(evse_id)])
+        if current < _EVSE_MIN_A or current > limit:
+            print(_LOG_CFG, 'ram range', variable, current)
+            return False
+        if current == limit:
+            # na maximu se drzi inp,EVSEx (i kdyz se pozdeji zvysi)
+            self.ram.pop(variable, None)
+        else:
+            self.ram[variable] = current
+        return True
 
     def getConfig(self):
         setting = {}
@@ -115,7 +185,7 @@ class Config:
 
         if len(setting) != len(self.config):
             for i in self.config:
-                if i in setting:
+                if i in setting and i not in _RUNTIME_KEYS:
                     if self.config[i] != setting[i]:
                         self.config[i] = setting[i]
             setting = {}
@@ -123,7 +193,7 @@ class Config:
         setting_changed = False
         for i in self.config:
             if i in setting:
-                if self.config[i] != setting[i]:
+                if i not in _RUNTIME_KEYS and self.config[i] != setting[i]:
                     self.config[i] = setting[i]
             else:
                 setting[i] = self.config[i]
@@ -156,6 +226,9 @@ class Config:
         try:
             if variable is None or len(variable) == 0:
                 return False
+
+            if variable.startswith(_RAM_EVSE):
+                return self._set_ram(variable, value)
 
             new_value = normalize_value(variable, value)
             if new_value is None:
